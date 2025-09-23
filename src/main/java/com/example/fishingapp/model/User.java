@@ -23,6 +23,24 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FishCapture> captures;
 
+    public User() {
+    }
+
+    public User(Long id, String username, String fullName, String email, List<FishCapture> captures) {
+        this.id = id;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.captures = captures;
+    }
+
+    public User(Long id, String username, String fullName, String email) {
+        this.id = id;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+    }
+
     public Long getId() {
         return id;
     }

@@ -31,6 +31,20 @@ public class FishCapture {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    public FishCapture() {
+
+    }
+
+    public FishCapture(Long id, User user, String fishType, Double weight, LocalDate captureDate, String location, LocalDateTime createdAt) {
+        this.id = id;
+        this.user = user;
+        this.fishType = fishType;
+        this.weight = weight;
+        this.captureDate = captureDate;
+        this.location = location;
+        this.createdAt = createdAt;
+    }
+
     public Long getId() {
         return id;
     }
