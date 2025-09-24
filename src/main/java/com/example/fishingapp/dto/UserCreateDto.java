@@ -1,4 +1,4 @@
-package com.example.fishingapp.DTO;
+package com.example.fishingapp.dto;
 
 public record UserCreateDto(Long id,
                             String username,

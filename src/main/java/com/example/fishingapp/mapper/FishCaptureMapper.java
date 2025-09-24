@@ -1,6 +1,6 @@
 package com.example.fishingapp.mapper;
 
-import com.example.fishingapp.DTO.FishCaptureDto;
+import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.model.FishCapture;
 
 public class FishCaptureMapper {

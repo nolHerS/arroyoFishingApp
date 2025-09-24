@@ -1,6 +1,6 @@
 package com.example.fishingapp.service;
 
-import com.example.fishingapp.DTO.FishCaptureDto;
+import com.example.fishingapp.dto.FishCaptureDto;
 
 public interface FishCaptureService {
 

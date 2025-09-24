@@ -1,6 +1,4 @@
-package com.example.fishingapp.DTO;
-
-import com.example.fishingapp.model.User;
+package com.example.fishingapp.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

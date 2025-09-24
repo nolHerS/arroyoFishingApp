@@ -1,6 +1,4 @@
-package com.example.fishingapp.DTO;
-
-import com.example.fishingapp.model.FishCapture;
+package com.example.fishingapp.dto;
 
 import java.util.List;
 
