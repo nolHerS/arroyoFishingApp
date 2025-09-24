@@ -2,15 +2,17 @@ package com.example.fishingapp.service;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 
+import java.util.List;
+
 public interface FishCaptureService {
 
-    FishCaptureDto createFishCapture(FishCaptureDto fishCaptureDto);
+    FishCaptureDto createFishCapture(FishCaptureDto fishCaptureDto, Long userId);
 
     FishCaptureDto findById(Long id);
 
-    FishCaptureDto getAllByUsername(String userName);
+    List<FishCaptureDto> getAllFishCapturesByUsername(String userName);
 
-    FishCaptureDto getAllFishCapture();
+    List<FishCaptureDto> getAllFishCapture();
 
     FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto);
 

@@ -7,6 +7,5 @@ public record UserDto (
     Long id,
     String username,
     String fullName,
-    String email,
-    List<FishCaptureDto> fishCaptures){}
+    String email){}
 

@@ -2,13 +2,14 @@ package com.example.fishingapp.mapper;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.model.FishCapture;
+import com.example.fishingapp.model.User;
 
 public class FishCaptureMapper {
 
     public static FishCaptureDto mapFishCaptureDto(FishCapture fishCapture){
         return new FishCaptureDto(
                 fishCapture.getId(),
-                UserMapper.mapUserSummaryDto(fishCapture.getUser()) ,
+                fishCapture.getUser().getId() ,
                 fishCapture.getFishType(),
                 fishCapture.getWeight(),
                 fishCapture.getCaptureDate(),
@@ -17,21 +18,10 @@ public class FishCaptureMapper {
         );
     }
 
-    public static FishCapture mapFishCapture (FishCaptureDto fishCaptureDto){
+    public static FishCapture mapFishCapture(FishCaptureDto fishCaptureDto, User user){
         return new FishCapture(
                 fishCaptureDto.id(),
-                UserMapper.mapToUserFromUserSummaryDto(fishCaptureDto.user().id),
-                fishCaptureDto.fishType(),
-                fishCaptureDto.weight(),
-                fishCaptureDto.captureData(),
-                fishCaptureDto.location(),
-                fishCaptureDto.createdAt()
-        );
-    }
-
-    public static FishCaptureSummaryDto mapFishCaptureSummary (FishCaptureDto fishCaptureDto){
-        return new FishCaptureSummaryDto(
-                fishCaptureDto.id(),
+                user,
                 fishCaptureDto.fishType(),
                 fishCaptureDto.weight(),
                 fishCaptureDto.captureData(),

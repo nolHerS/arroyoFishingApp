@@ -1,6 +1,5 @@
 package com.example.fishingapp.service.impl;
 
-import com.example.fishingapp.dto.UserCreateDto;
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
@@ -8,7 +7,6 @@ import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,30 +15,26 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserRepository userRepository;
 
-    private UserRepository userRepository;
-
-    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository) {
-        this.userMapper = userMapper;
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
-    public UserCreateDto createUser(UserCreateDto userCreateDto) {
+    public UserDto createUser(UserDto userDto) {
 
-        Optional<User> optionalUser = userRepository.findByUsername(userCreateDto.username());
+        Optional<User> optionalUser = userRepository.findByUsername(userDto.username());
 
         if(optionalUser.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userCreateDto.username());
+            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userDto.username());
         }
 
-        User user = userMapper.mapUserCreateDto(userCreateDto);
+        User user = UserMapper.mapUser(userDto);
 
         User savedUser = userRepository.save(user);
 
-        return userMapper.mapUserCreateDto(savedUser);
+        return UserMapper.mapUserDto(savedUser);
     }
 
     @Override
@@ -52,31 +46,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserCreateDto> getAllUsers() {
+    public UserDto findById(Long id) {
 
-        return userRepository.findAll().stream().map(UserMapper::mapUserCreateDto).toList();
+        return userRepository.findById(id).map(UserMapper::mapUserDto).orElseThrow(
+                () -> new ResourceNotFoundException("User", "id", id.toString())
+        );
     }
 
     @Override
-    public UserCreateDto updateUserCreateDto(UserCreateDto userCreateDto) {
+    public List<UserDto> getAllUsers() {
 
-        User existingUser = userRepository.findById(userCreateDto.id()).orElseThrow(() -> new ResourceNotFoundException(
-                "user","id",userCreateDto.id().toString()
+        return userRepository.findAll().stream().map(UserMapper::mapUserDto).toList();
+    }
+
+    @Override
+    public UserDto updateUserDto(UserDto UserDto) {
+
+        User existingUser = userRepository.findById(UserDto.id()).orElseThrow(() -> new ResourceNotFoundException(
+                "user","id",UserDto.id().toString()
         ));
 
-        Optional<User> existingUsername = userRepository.findByUsername(userCreateDto.username());
+        Optional<User> existingUsername = userRepository.findByUsername(UserDto.username());
 
         if(existingUsername.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userCreateDto.username());
+            throw new UsernameAlreadyExistsException("Username Already Exists For User "+UserDto.username());
         }
 
-        existingUser.setFullName(userCreateDto.fullName());
-        existingUser.setEmail(userCreateDto.email());
-        existingUser.setUsername(userCreateDto.username());
+        existingUser.setFullName(UserDto.fullName());
+        existingUser.setEmail(UserDto.email());
+        existingUser.setUsername(UserDto.username());
 
         User updateUser = userRepository.save(existingUser);
 
-        return UserMapper.mapUserCreateDto(updateUser);
+        return UserMapper.mapUserDto(updateUser);
     }
 
     @Override

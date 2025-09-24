@@ -20,18 +20,7 @@ public class User {
 
     private String email;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FishCapture> captures;
-
     public User() {
-    }
-
-    public User(Long id, String username, String fullName, String email, List<FishCapture> captures) {
-        this.id = id;
-        this.username = username;
-        this.fullName = fullName;
-        this.email = email;
-        this.captures = captures;
     }
 
     public User(Long id, String username, String fullName, String email) {
@@ -73,24 +62,16 @@ public class User {
         this.email = email;
     }
 
-    public List<FishCapture> getCaptures() {
-        return captures;
-    }
-
-    public void setCaptures(List<FishCapture> captures) {
-        this.captures = captures;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(fullName, user.fullName) && Objects.equals(email, user.email) && Objects.equals(captures, user.captures);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(fullName, user.fullName) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, fullName, email, captures);
+        return Objects.hash(id, username, fullName, email);
     }
 
     @Override
@@ -100,7 +81,6 @@ public class User {
                 ", username='" + username + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
-                ", captures=" + captures +
                 '}';
     }
 }

@@ -1,6 +1,5 @@
 package com.example.fishingapp.repository;
 
-import com.example.fishingapp.dto.UserCreateDto;
 import com.example.fishingapp.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

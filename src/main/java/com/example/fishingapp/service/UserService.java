@@ -1,19 +1,20 @@
 package com.example.fishingapp.service;
 
-import com.example.fishingapp.dto.UserCreateDto;
 import com.example.fishingapp.dto.UserDto;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserCreateDto createUser (UserCreateDto user);
+    UserDto createUser(UserDto userDto);
 
-    UserDto findByUsername (String userId);
+    UserDto findByUsername (String userUsername);
 
-    List<UserCreateDto> getAllUsers ();
+    UserDto findById (Long id);
 
-    UserCreateDto updateUserCreateDto ( UserCreateDto userCreateDto);
+    List<UserDto> getAllUsers ();
+
+    UserDto updateUserDto ( UserDto userDto);
 
     void deleteUser (String username);
 
