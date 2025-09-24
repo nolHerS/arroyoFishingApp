@@ -9,7 +9,7 @@ public interface UserService {
 
     UserCreateDto createUser (UserCreateDto user);
 
-    UserDto findById (String userName);
+    UserDto findByUsername (String userId);
 
     List<UserCreateDto> getAllUsers ();
 

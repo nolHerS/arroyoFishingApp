@@ -2,6 +2,7 @@ package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.UserCreateDto;
 import com.example.fishingapp.dto.UserDto;
+import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
 import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.User;
@@ -43,22 +44,54 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findById(String userName) {
-        return null;
+    public UserDto findByUsername(String userName) {
+
+        return userRepository.findByUsername(userName).map(UserMapper::mapUserDto).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", userName)
+        );
     }
 
     @Override
     public List<UserCreateDto> getAllUsers() {
-        return List.of();
+
+        return userRepository.findAll().stream().map(UserMapper::mapUserCreateDto).toList();
     }
 
     @Override
     public UserCreateDto updateUserCreateDto(UserCreateDto userCreateDto) {
-        return null;
+
+        User existingUser = userRepository.findById(userCreateDto.id()).orElseThrow(() -> new ResourceNotFoundException(
+                "user","id",userCreateDto.id().toString()
+        ));
+
+        Optional<User> existingUsername = userRepository.findByUsername(userCreateDto.username());
+
+        if(existingUsername.isPresent()){
+            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userCreateDto.username());
+        }
+
+        existingUser.setFullName(userCreateDto.fullName());
+        existingUser.setEmail(userCreateDto.email());
+        existingUser.setUsername(userCreateDto.username());
+
+        User updateUser = userRepository.save(existingUser);
+
+        return UserMapper.mapUserCreateDto(updateUser);
     }
 
     @Override
     public void deleteUser(String username) {
+
+        Optional<User> existingUsername = userRepository.findByUsername(username);
+
+        if(existingUsername.isPresent()){
+            throw new UsernameAlreadyExistsException("Username Already Exists For User "+username);
+        }
+
+        userRepository.delete(existingUsername.orElseThrow(() -> new ResourceNotFoundException(
+                "user","id",username
+        )));
+
 
     }
 }
