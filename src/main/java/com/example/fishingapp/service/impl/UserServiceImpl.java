@@ -84,10 +84,6 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> existingUsername = userRepository.findByUsername(username);
 
-        if(existingUsername.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+username);
-        }
-
         userRepository.delete(existingUsername.orElseThrow(() -> new ResourceNotFoundException(
                 "user","id",username
         )));
