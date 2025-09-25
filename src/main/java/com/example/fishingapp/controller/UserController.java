@@ -21,12 +21,12 @@ public class UserController {
         return new ResponseEntity<>(userService.createUser(userDto), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<UserDto> findUserByUsername(@PathVariable String username){
         return new ResponseEntity<>(userService.findByUsername(username),HttpStatus.OK);
     }
 
-    @GetMapping("/{idUser}")
+    @GetMapping("/id/{idUser}")
     public ResponseEntity<UserDto> findUserById(@PathVariable Long idUser){
         return new ResponseEntity<>(userService.findById(idUser),HttpStatus.OK);
     }
@@ -41,7 +41,7 @@ public class UserController {
         return new ResponseEntity<>(userService.updateUserDto(userDto),HttpStatus.OK);
     }
 
-    @DeleteMapping("/{username}")
+    @DeleteMapping("/{usernameUser}")
     public ResponseEntity<String> deleteUser(@PathVariable String usernameUser){
         UserDto userDto = userService.findByUsername(usernameUser);
         userService.deleteUser(usernameUser);
