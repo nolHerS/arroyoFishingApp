@@ -13,7 +13,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -58,8 +59,12 @@ class FishCaptureRepositoryTest {
         fishCaptureRepository.save(capture2);
 
         List<FishCapture> captures = fishCaptureRepository.findByUser(user);
-        assertThat(captures).hasSize(2);
-        assertThat(captures).extracting(FishCapture::getFishType).containsExactlyInAnyOrder("Trucha", "Black Bass");
+
+        assertThat(captures, hasSize(2));
+        assertThat(
+                captures.stream().map(FishCapture::getFishType).toList(),
+                containsInAnyOrder("Trucha", "Black Bass")
+        );
     }
 
     @Test
@@ -73,7 +78,7 @@ class FishCaptureRepositoryTest {
         userRepository.save(user);
 
         List<FishCapture> captures = fishCaptureRepository.findByUser(user);
-        assertThat(captures).isEmpty();
+        assertThat(captures, empty());
     }
 
     @Test
@@ -96,8 +101,9 @@ class FishCaptureRepositoryTest {
                 .build();
 
         FishCapture saved = fishCaptureRepository.save(capture);
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getFishType()).isEqualTo("Carpa");
+
+        assertThat(saved.getId(), notNullValue());
+        assertThat(saved.getFishType(), equalTo("Carpa"));
     }
 
     @Test
@@ -122,6 +128,6 @@ class FishCaptureRepositoryTest {
 
         long countBefore = fishCaptureRepository.count();
         fishCaptureRepository.delete(capture);
-        assertThat(fishCaptureRepository.count()).isEqualTo(countBefore - 1);
+        assertThat(fishCaptureRepository.count(), equalTo(countBefore - 1L));
     }
 }

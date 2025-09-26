@@ -11,7 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -32,15 +33,15 @@ class UserRepositoryTest {
         userRepository.save(user);
 
         Optional<User> found = userRepository.findByUsername("maria89");
-        assertThat(found).isPresent();
-        assertThat(found.get().getUsername()).isEqualTo("maria89");
+        assertThat(found.isPresent(), is(true));
+        assertThat(found.get().getUsername(), equalTo("maria89"));
     }
 
     @Test
     @DisplayName("findByUsername: devuelve vacío si no existe")
     void testFindByUsernameNotFound() {
         Optional<User> found = userRepository.findByUsername("noexiste");
-        assertThat(found).isEmpty();
+        assertThat(found.isEmpty(), is(true));
     }
 
     @Test
@@ -52,8 +53,8 @@ class UserRepositoryTest {
         userRepository.save(user2);
 
         List<User> users = userRepository.findAll();
-        assertThat(users).hasSize(2);
-        assertThat(users).extracting(User::getUsername).containsExactlyInAnyOrder("carlos21", "laura_p");
+        assertThat(users, hasSize(2));
+        assertThat(users.stream().map(User::getUsername).toList(), containsInAnyOrder("carlos21", "laura_p"));
     }
 
     @Test
@@ -66,8 +67,8 @@ class UserRepositoryTest {
                 .build();
         User saved = userRepository.save(user);
 
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getUsername()).isEqualTo("antonio_m");
+        assertThat(saved.getId(), notNullValue());
+        assertThat(saved.getUsername(), equalTo("antonio_m"));
     }
 
     @Test
@@ -82,7 +83,7 @@ class UserRepositoryTest {
 
         long countBefore = userRepository.count();
         userRepository.delete(user);
-        assertThat(userRepository.count()).isEqualTo(countBefore - 1);
+        assertThat(userRepository.count(), equalTo(countBefore - 1L));
     }
 
     @Test
@@ -90,7 +91,6 @@ class UserRepositoryTest {
     void testDeleteByIdNotFound() {
         long countBefore = userRepository.count();
         userRepository.deleteById(999L);
-        assertThat(userRepository.count()).isEqualTo(countBefore);
+        assertThat(userRepository.count(), equalTo(countBefore));
     }
-
 }
