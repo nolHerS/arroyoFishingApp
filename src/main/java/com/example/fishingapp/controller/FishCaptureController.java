@@ -17,16 +17,16 @@ public class FishCaptureController {
     @Autowired
     private FishCaptureService fishCaptureService;
 
-    @PostMapping("/{username}")
+    @PostMapping("/create/{username}")
     public ResponseEntity<FishCaptureDto> createCapture(@RequestBody FishCaptureDto fishCapture, @PathVariable Long username) {
         return new ResponseEntity<>(fishCaptureService.createFishCapture(fishCapture,username),HttpStatus.OK);
     }
-    @PostMapping("/{idFishCapture}")
+    @PostMapping("/findId/{idFishCapture}")
     public ResponseEntity<FishCaptureDto> findFishCaptureById(@PathVariable Long idFishCapture){
         return new ResponseEntity<>(fishCaptureService.findById(idFishCapture), HttpStatus.OK);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/findUsername/{username}")
     public ResponseEntity<List<FishCaptureDto>> getFishCaptureByUsername(@PathVariable String username){
         return new ResponseEntity<>(fishCaptureService.getAllFishCapturesByUsername(username),HttpStatus.OK);
     }
