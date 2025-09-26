@@ -44,7 +44,7 @@ public class FishCaptureServiceImplTest {
                 null,
                 userId,
                 "Trucha",
-                2.5,
+                2.5F,
                 LocalDate.of(2025, 9, 25),
                 "Rio Tajo",
                 LocalDateTime.now()
@@ -58,12 +58,12 @@ public class FishCaptureServiceImplTest {
         // Mock del repositorio: devuelve el objeto guardado con id
         FishCapture savedCapture = new FishCapture(
                 1L,
-                user,
-                "Trucha",
-                2.5,
                 LocalDate.of(2025, 9, 25),
+                LocalDateTime.now(),
+                "Trucha",
                 "Rio Tajo",
-                LocalDateTime.now()
+                2.5F,
+                user
         );
         when(fishCaptureRepository.save(any(FishCapture.class))).thenReturn(savedCapture);
 
@@ -75,7 +75,7 @@ public class FishCaptureServiceImplTest {
         assertThat(result.id(), is(1L));
         assertThat(result.userId(), is(userId));
         assertThat(result.fishType(), is("Trucha"));
-        assertThat(result.weight(), is(2.5));
+        assertThat(result.weight(), is(2.5F));
         assertThat(result.location(), is("Rio Tajo"));
 
         // Verificar que save se llamó una vez
@@ -89,7 +89,7 @@ public class FishCaptureServiceImplTest {
                 null,
                 userId,
                 "Trucha",
-                2.5,
+                2.5F,
                 LocalDate.of(2025, 9, 25),
                 "Rio Tajo",
                 LocalDateTime.now()
@@ -117,13 +117,13 @@ public class FishCaptureServiceImplTest {
         User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
 
         FishCapture capture = new FishCapture(
-                captureId,
-                user,
-                "Trucha",
-                2.5,
+                1L,
                 LocalDate.of(2025, 9, 25),
+                LocalDateTime.now(),
+                "Trucha",
                 "Rio Tajo",
-                LocalDateTime.now()
+                2.5F,
+                user
         );
 
         when(fishCaptureRepository.findById(captureId)).thenReturn(java.util.Optional.of(capture));
@@ -135,7 +135,7 @@ public class FishCaptureServiceImplTest {
         assertThat(result.id(), is(captureId));
         assertThat(result.userId(), is(user.getId()));
         assertThat(result.fishType(), is("Trucha"));
-        assertThat(result.weight(), is(2.5));
+        assertThat(result.weight(), is(2.5F));
         assertThat(result.location(), is("Rio Tajo"));
     }
 
@@ -164,8 +164,24 @@ public class FishCaptureServiceImplTest {
         when(userService.findByUsername(username)).thenReturn(UserMapper.mapUserDto(user));
 
         // Datos de capturas
-        FishCapture capture1 = new FishCapture(1L, user, "Trucha", 2.5, LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now());
-        FishCapture capture2 = new FishCapture(2L, user, "Salmón", 3.0, LocalDate.of(2025, 9, 24), "Rio Jerte", LocalDateTime.now());
+        FishCapture capture1 = new FishCapture();
+        capture1.setId(1L);
+        capture1.setCaptureDate(LocalDate.of(2025, 9, 25));
+        capture1.setCreatedAt(LocalDateTime.now());
+        capture1.setFishType("Trucha");
+        capture1.setLocation("Rio Tajo");
+        capture1.setWeight(2.5f);
+        capture1.setUser(user);
+
+        FishCapture capture2 = new FishCapture();
+        capture2.setId(2L);
+        capture2.setCaptureDate(LocalDate.of(2025, 9, 24));
+        capture2.setCreatedAt(LocalDateTime.now());
+        capture2.setFishType("Salmón");
+        capture2.setLocation("Rio Jerte");
+        capture2.setWeight(3.0f);
+        capture2.setUser(user);
+
 
         when(fishCaptureRepository.findByUser(user)).thenReturn(java.util.List.of(capture1, capture2));
 
@@ -179,14 +195,14 @@ public class FishCaptureServiceImplTest {
         assertThat(result.get(0).id(), is(1L));
         assertThat(result.get(0).userId(), is(user.getId()));
         assertThat(result.get(0).fishType(), is("Trucha"));
-        assertThat(result.get(0).weight(), is(2.5));
+        assertThat(result.get(0).weight(), is(2.5F));
         assertThat(result.get(0).location(), is("Rio Tajo"));
 
         // Segundo elemento
         assertThat(result.get(1).id(), is(2L));
         assertThat(result.get(1).userId(), is(user.getId()));
         assertThat(result.get(1).fishType(), is("Salmón"));
-        assertThat(result.get(1).weight(), is(3.0));
+        assertThat(result.get(1).weight(), is(3.0F));
         assertThat(result.get(1).location(), is("Rio Jerte"));
     }
 
@@ -212,8 +228,24 @@ public class FishCaptureServiceImplTest {
     void getAllFishCapture_returnsList_whenCapturesExist() {
         User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
 
-        FishCapture capture1 = new FishCapture(1L, user, "Trucha", 2.5, LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now());
-        FishCapture capture2 = new FishCapture(2L, user, "Salmón", 3.0, LocalDate.of(2025, 9, 24), "Rio Jerte", LocalDateTime.now());
+        FishCapture capture1 = new FishCapture();
+        capture1.setId(1L);
+        capture1.setCaptureDate(LocalDate.of(2025, 9, 25));
+        capture1.setCreatedAt(LocalDateTime.now());
+        capture1.setFishType("Trucha");
+        capture1.setLocation("Rio Tajo");
+        capture1.setWeight(2.5f);
+        capture1.setUser(user);
+
+        FishCapture capture2 = new FishCapture();
+        capture2.setId(2L);
+        capture2.setCaptureDate(LocalDate.of(2025, 9, 24));
+        capture2.setCreatedAt(LocalDateTime.now());
+        capture2.setFishType("Salmón");
+        capture2.setLocation("Rio Jerte");
+        capture2.setWeight(3.0f);
+        capture2.setUser(user);
+
 
         // Mock del repositorio
         when(fishCaptureRepository.findAll()).thenReturn(java.util.List.of(capture1, capture2));
@@ -228,14 +260,14 @@ public class FishCaptureServiceImplTest {
         assertThat(result.get(0).id(), is(1L));
         assertThat(result.get(0).userId(), is(user.getId()));
         assertThat(result.get(0).fishType(), is("Trucha"));
-        assertThat(result.get(0).weight(), is(2.5));
+        assertThat(result.get(0).weight(), is(2.5F));
         assertThat(result.get(0).location(), is("Rio Tajo"));
 
         // Segundo elemento
         assertThat(result.get(1).id(), is(2L));
         assertThat(result.get(1).userId(), is(user.getId()));
         assertThat(result.get(1).fishType(), is("Salmón"));
-        assertThat(result.get(1).weight(), is(3.0));
+        assertThat(result.get(1).weight(), is(3.0F));
         assertThat(result.get(1).location(), is("Rio Jerte"));
     }
 
@@ -256,21 +288,20 @@ public class FishCaptureServiceImplTest {
         Long captureId = 1L;
         User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
 
-        FishCapture existingCapture = new FishCapture(
-                captureId,
-                user,
-                "Trucha",
-                2.5,
-                LocalDate.of(2025, 9, 25),
-                "Rio Tajo",
-                LocalDateTime.of(2025, 9, 25, 10, 0)
-        );
+        FishCapture existingCapture = new FishCapture();
+        existingCapture.setId(captureId);
+        existingCapture.setCaptureDate(LocalDate.of(2025, 9, 25));
+        existingCapture.setCreatedAt(LocalDateTime.of(2025, 9, 25, 10, 0));
+        existingCapture.setFishType("Trucha");
+        existingCapture.setLocation("Rio Tajo");
+        existingCapture.setWeight(2.5f);
+        existingCapture.setUser(user);
 
         FishCaptureDto inputDto = new FishCaptureDto(
                 captureId,
                 user.getId(),
                 "Salmón",
-                3.0,
+                3.0F,
                 LocalDate.of(2025, 9, 26),
                 "Rio Jerte",
                 LocalDateTime.of(2025, 9, 26, 11, 0)
@@ -287,7 +318,7 @@ public class FishCaptureServiceImplTest {
         assertThat(result.id(), is(captureId));
         assertThat(result.userId(), is(user.getId()));
         assertThat(result.fishType(), is("Salmón"));
-        assertThat(result.weight(), is(3.0));
+        assertThat(result.weight(), is(3.0F));
         assertThat(result.location(), is("Rio Jerte"));
 
         // Verificar que save se llamó
@@ -301,7 +332,7 @@ public class FishCaptureServiceImplTest {
                 captureId,
                 1L,
                 "Salmón",
-                3.0,
+                3.0F,
                 LocalDate.of(2025, 9, 26),
                 "Rio Jerte",
                 LocalDateTime.of(2025, 9, 26, 11, 0)

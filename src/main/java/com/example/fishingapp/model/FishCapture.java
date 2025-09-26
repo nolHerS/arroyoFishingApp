@@ -1,6 +1,7 @@
 package com.example.fishingapp.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,98 +9,35 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "fish_captures")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class FishCapture {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(nullable = false)
-    private String fishType;
-
-    @Column(nullable = false)
-    private Double weight;
-
-    @Column(nullable = false)
+    @Column(name = "capture_date", nullable = false)
     private LocalDate captureDate;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "fish_type", nullable = false)
+    private String fishType;
+
+    @Column(name = "location")
     private String location;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "weight", nullable = false)
+    private Float weight;
 
-    public FishCapture() {
-
-    }
-
-    public FishCapture(Long id, User user, String fishType, Double weight, LocalDate captureDate, String location, LocalDateTime createdAt) {
-        this.id = id;
-        this.user = user;
-        this.fishType = fishType;
-        this.weight = weight;
-        this.captureDate = captureDate;
-        this.location = location;
-        this.createdAt = createdAt;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getFishType() {
-        return fishType;
-    }
-
-    public void setFishType(String fishType) {
-        this.fishType = fishType;
-    }
-
-    public Double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
-
-    public LocalDate getCaptureDate() {
-        return captureDate;
-    }
-
-    public void setCaptureDate(LocalDate captureDate) {
-        this.captureDate = captureDate;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Override
     public boolean equals(Object o) {

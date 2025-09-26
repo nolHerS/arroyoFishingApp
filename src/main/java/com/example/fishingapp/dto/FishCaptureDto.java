@@ -8,7 +8,7 @@ public record FishCaptureDto (
      Long id,
      Long userId,
      String fishType,
-     Double weight,
+     Float weight,
      LocalDate captureData,
      String location,
      LocalDateTime createdAt){}

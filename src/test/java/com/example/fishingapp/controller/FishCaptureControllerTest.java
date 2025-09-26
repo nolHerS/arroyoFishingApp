@@ -36,10 +36,10 @@ public class FishCaptureControllerTest {
     @Test
     void createCapture_returnsCapture() throws Exception {
         Long userId = 1L;
-        FishCaptureDto captureDto = new FishCaptureDto(null, userId, "Trucha", 2.5,
+        FishCaptureDto captureDto = new FishCaptureDto(null, userId, "Trucha", 2.5F,
                 LocalDate.of(2025,9,25),"Rio Tajo", LocalDateTime.now());
 
-        FishCaptureDto savedDto = new FishCaptureDto(1L, userId, "Trucha", 2.5,
+        FishCaptureDto savedDto = new FishCaptureDto(1L, userId, "Trucha", 2.5F,
                 LocalDate.of(2025,9,25),"Rio Tajo", LocalDateTime.now());
 
         when(fishCaptureService.createFishCapture(any(FishCaptureDto.class), eq(userId))).thenReturn(savedDto);
@@ -58,7 +58,7 @@ public class FishCaptureControllerTest {
     @Test
     void createCapture_throwsResourceNotFound() throws Exception {
         Long userId = 1L;
-        FishCaptureDto captureDto = new FishCaptureDto(null, userId, "Trucha", 2.5,
+        FishCaptureDto captureDto = new FishCaptureDto(null, userId, "Trucha", 2.5F,
                 LocalDate.of(2025,9,25),"Rio Tajo", LocalDateTime.now());
 
         when(fishCaptureService.createFishCapture(any(FishCaptureDto.class), eq(userId)))
@@ -82,7 +82,7 @@ public class FishCaptureControllerTest {
                 captureId,
                 userId,
                 "Trucha",
-                2.5,
+                2.5F,
                 LocalDate.of(2025, 9, 25),
                 "Rio Tajo",
                 LocalDateTime.now()
@@ -121,9 +121,9 @@ public class FishCaptureControllerTest {
         Long userId = 1L;
 
         List<FishCaptureDto> captures = List.of(
-                new FishCaptureDto(1L, userId, "Trucha", 2.5,
+                new FishCaptureDto(1L, userId, "Trucha", 2.5F,
                         LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()),
-                new FishCaptureDto(2L, userId, "Carpa", 1.8,
+                new FishCaptureDto(2L, userId, "Carpa", 1.8F,
                         LocalDate.of(2025, 9, 20), "Lago Grande", LocalDateTime.now())
         );
 
@@ -161,9 +161,9 @@ public class FishCaptureControllerTest {
         Long userId = 1L;
 
         List<FishCaptureDto> captures = List.of(
-                new FishCaptureDto(1L, userId, "Trucha", 2.5,
+                new FishCaptureDto(1L, userId, "Trucha", 2.5F,
                         LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()),
-                new FishCaptureDto(2L, userId, "Carpa", 1.8,
+                new FishCaptureDto(2L, userId, "Carpa", 1.8F,
                         LocalDate.of(2025, 9, 20), "Lago Grande", LocalDateTime.now())
         );
 
@@ -200,12 +200,12 @@ public class FishCaptureControllerTest {
         Long userId = 1L;
 
         FishCaptureDto inputDto = new FishCaptureDto(
-                1L, userId, "Trucha", 2.5,
+                1L, userId, "Trucha", 2.5F,
                 LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()
         );
 
         FishCaptureDto updatedDto = new FishCaptureDto(
-                1L, userId, "Carpa", 3.0,
+                1L, userId, "Carpa", 3.0F,
                 LocalDate.of(2025, 9, 26), "Lago Grande", LocalDateTime.now()
         );
 
@@ -227,7 +227,7 @@ public class FishCaptureControllerTest {
 
     @Test
     void updateFishCapture_throwsResourceNotFound() throws Exception {
-        FishCaptureDto captureDto = new FishCaptureDto(1L, 1L, "Trucha", 2.5,
+        FishCaptureDto captureDto = new FishCaptureDto(1L, 1L, "Trucha", 2.5F,
                 LocalDate.of(2025,9,25),"Rio Tajo", LocalDateTime.now());
 
         when(fishCaptureService.updateFishCaptureDto(any(FishCaptureDto.class)))
@@ -250,7 +250,7 @@ public class FishCaptureControllerTest {
                 captureId,
                 1L,
                 "Trucha",
-                2.5,
+                2.5F,
                 LocalDate.of(2025, 9, 25),
                 "Rio Tajo",
                 LocalDateTime.now()

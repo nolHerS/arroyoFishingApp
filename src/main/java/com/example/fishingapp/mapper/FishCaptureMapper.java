@@ -21,12 +21,12 @@ public class FishCaptureMapper {
     public static FishCapture mapFishCapture(FishCaptureDto fishCaptureDto, User user){
         return new FishCapture(
                 fishCaptureDto.id(),
-                user,
-                fishCaptureDto.fishType(),
-                fishCaptureDto.weight(),
                 fishCaptureDto.captureData(),
+                fishCaptureDto.createdAt(),
+                fishCaptureDto.fishType(),
                 fishCaptureDto.location(),
-                fishCaptureDto.createdAt()
+                fishCaptureDto.weight(),
+                user
         );
     }
 }
