@@ -1,6 +1,8 @@
 package com.example.fishingapp.exception;
 
+import lombok.Getter;
 
+@Getter
 public class ResourceNotFoundException  extends RuntimeException{
 
     private final String resourceName;
@@ -12,17 +14,5 @@ public class ResourceNotFoundException  extends RuntimeException{
         this.resourceName = resourceName;
         this.fieldValue = fieldValue;
         this.fieldName = fieldName;
-    }
-
-    public String getResourceName() {
-        return resourceName;
-    }
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public String getFieldValue() {
-        return fieldValue;
     }
 }

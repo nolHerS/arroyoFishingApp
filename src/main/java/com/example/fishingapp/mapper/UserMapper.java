@@ -5,6 +5,9 @@ import com.example.fishingapp.model.User;
 
 public class UserMapper {
 
+    private UserMapper() {
+    }
+
     public static UserDto mapUserDto(User user){
         return new UserDto(
                 user.getId(),

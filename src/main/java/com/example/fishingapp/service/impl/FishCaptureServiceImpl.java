@@ -9,11 +9,9 @@ import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.service.FishCaptureService;
 import com.example.fishingapp.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FishCaptureServiceImpl implements FishCaptureService {

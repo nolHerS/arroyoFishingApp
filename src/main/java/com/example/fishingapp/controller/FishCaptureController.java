@@ -2,8 +2,6 @@ package com.example.fishingapp.controller;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.service.FishCaptureService;
-import com.example.fishingapp.service.impl.FishCaptureServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,11 @@ import java.util.List;
 @RequestMapping("/api/fishCaptures")
 public class FishCaptureController {
 
-    @Autowired
-    private FishCaptureService fishCaptureService;
+    private final FishCaptureService fishCaptureService;
+
+    public FishCaptureController(FishCaptureService fishCaptureService) {
+        this.fishCaptureService = fishCaptureService;
+    }
 
     @PostMapping("/create/{username}")
     public ResponseEntity<FishCaptureDto> createCapture(@RequestBody FishCaptureDto fishCapture, @PathVariable Long username) {

@@ -6,6 +6,9 @@ import com.example.fishingapp.model.User;
 
 public class FishCaptureMapper {
 
+    private FishCaptureMapper() {
+    }
+
     public static FishCaptureDto mapFishCaptureDto(FishCapture fishCapture){
         return new FishCaptureDto(
                 fishCapture.getId(),
