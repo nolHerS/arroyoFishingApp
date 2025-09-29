@@ -1,0 +1,70 @@
+name: Full CI/CD for Spring Boot
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_PACKAGE: "com.example:arroyoFishingApp" # Cambia por tu groupId:artifactId
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build, run unit and integration tests
+        run: mvn clean verify
+
+      - name: Upload JaCoCo report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.1.0
+        with:
+          projectKey: arroyoFishingApp
+          organization: nolHerS
+          token: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Fail if coverage < 85%
+        run: |
+          COVERAGE=$(grep -Po 'INSTRUCTION COVERAGE\s*:\s*\K\d+' target/site/jacoco/jacoco.xml || echo 0)
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 85 ]; then
+            echo "ERROR: Coverage is below 85%"
+            exit 1
+          fi
+
+      - name: Publish JaCoCo report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/site/jacoco
+          publish_branch: gh-pages
+          keep_files: true
+
+      - name: Deploy JAR to GitHub Packages
+        run: |
+          mvn deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
