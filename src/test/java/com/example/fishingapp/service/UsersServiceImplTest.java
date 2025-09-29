@@ -160,7 +160,7 @@ class UsersServiceImplTest {
         // Mock del repositorio
         when(userRepository.findAll()).thenReturn(List.of());
 
-        List<User> result = userService.getAllUsers().stream().map(UserMapper::mapUser).toList();;
+        List<User> result = userService.getAllUsers().stream().map(UserMapper::mapUser).toList();
 
         // Comprobación del mensaje
         assertThat(result, notNullValue());
