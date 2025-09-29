@@ -14,6 +14,8 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
+@EqualsAndHashCode
 public class FishCapture {
 
     @Id
@@ -39,28 +41,4 @@ public class FishCapture {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        FishCapture that = (FishCapture) o;
-        return Objects.equals(id, that.id) && Objects.equals(user, that.user) && Objects.equals(fishType, that.fishType) && Objects.equals(weight, that.weight) && Objects.equals(captureDate, that.captureDate) && Objects.equals(location, that.location) && Objects.equals(createdAt, that.createdAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, user, fishType, weight, captureDate, location, createdAt);
-    }
-
-    @Override
-    public String toString() {
-        return "FishCapture{" +
-                "id=" + id +
-                ", user=" + user +
-                ", fishType='" + fishType + '\'' +
-                ", weight=" + weight +
-                ", captureDate=" + captureDate +
-                ", location='" + location + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
-    }
 }
