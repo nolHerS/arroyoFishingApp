@@ -59,21 +59,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUserDto(UserDto UserDto) {
+    public UserDto updateUserDto(UserDto userDto) {
 
-        User existingUser = userRepository.findById(UserDto.id()).orElseThrow(() -> new ResourceNotFoundException(
-                "user","id",UserDto.id().toString()
+        User existingUser = userRepository.findById(userDto.id()).orElseThrow(() -> new ResourceNotFoundException(
+                "user","id",userDto.id().toString()
         ));
 
-        Optional<User> existingUsername = userRepository.findByUsername(UserDto.username());
+        Optional<User> existingUsername = userRepository.findByUsername(userDto.username());
 
         if(existingUsername.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+UserDto.username());
+            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userDto.username());
         }
 
-        existingUser.setFullName(UserDto.fullName());
-        existingUser.setEmail(UserDto.email());
-        existingUser.setUsername(UserDto.username());
+        existingUser.setFullName(userDto.fullName());
+        existingUser.setEmail(userDto.email());
+        existingUser.setUsername(userDto.username());
 
         User updateUser = userRepository.save(existingUser);
 

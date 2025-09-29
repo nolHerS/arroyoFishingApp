@@ -9,19 +9,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      MAVEN_PACKAGE: "com.example:arroyoFishingApp" # Cambia por tu groupId:artifactId
 
     steps:
+      # 1️⃣ Clonar repositorio
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Configurar JDK
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      # 3️⃣ Cache Maven
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
@@ -30,22 +31,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build, run unit and integration tests
+      # 4️⃣ Build + Tests (unitarios + integracion)
+      - name: Build and run tests
         run: mvn clean verify
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
+      # 5️⃣ Subir reporte JaCoCo como artifact
       - name: Upload JaCoCo report as artifact
         uses: actions/upload-artifact@v3
         with:
           name: jacoco-report
           path: target/site/jacoco
 
+      # 6️⃣ SonarCloud scan
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.1.0
         with:
           projectKey: arroyoFishingApp
-          organization: nolHerS
+          organization: nolHerS   # tu SonarCloud organization key
           token: ${{ secrets.SONAR_TOKEN }}
 
+      # 7️⃣ Fail si cobertura <85%
       - name: Fail if coverage < 85%
         run: |
           COVERAGE=$(grep -Po 'INSTRUCTION COVERAGE\s*:\s*\K\d+' target/site/jacoco/jacoco.xml || echo 0)
@@ -55,6 +62,7 @@ jobs:
             exit 1
           fi
 
+      # 8️⃣ Publicar reporte JaCoCo en GitHub Pages
       - name: Publish JaCoCo report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v6
         with:
@@ -63,8 +71,8 @@ jobs:
           publish_branch: gh-pages
           keep_files: true
 
+      # 9️⃣ Deploy JAR a GitHub Packages
       - name: Deploy JAR to GitHub Packages
-        run: |
-          mvn deploy -DskipTests
+        run: mvn deploy -DskipTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
