@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 @WebMvcTest(UserController.class)
 @ExtendWith(SpringExtension.class)
-public class UserControllerTest {
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

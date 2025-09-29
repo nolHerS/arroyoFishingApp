@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Transactional
-public class UserIntegrationTest {
+class UserIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;

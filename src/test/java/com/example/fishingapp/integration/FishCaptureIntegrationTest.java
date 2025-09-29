@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Transactional
-public class FishCaptureIntegrationTest {
+class FishCaptureIntegrationTest {
 
     @Autowired
     private FishCaptureRepository fishCaptureRepository;

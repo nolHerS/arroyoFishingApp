@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FishCaptureController.class)
-public class FishCaptureControllerTest {
+class FishCaptureControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
