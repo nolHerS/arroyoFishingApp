@@ -4,6 +4,7 @@ package com.example.fishingapp.dto;
 public record UserDto (
     Long id,
     String username,
+//    String password,
     String fullName,
     String email){}
 

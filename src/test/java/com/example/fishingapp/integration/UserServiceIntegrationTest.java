@@ -1,5 +1,6 @@
 package com.example.fishingapp.integration;
 
+import com.example.fishingapp.config.NoSecurityTestConfig;
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -18,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
+@Import(NoSecurityTestConfig.class)
 class UserServiceIntegrationTest {
 
     @Autowired

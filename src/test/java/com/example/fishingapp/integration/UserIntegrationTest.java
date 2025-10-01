@@ -1,5 +1,6 @@
 package com.example.fishingapp.integration;
 
+import com.example.fishingapp.config.NoSecurityTestConfig;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.UserRepository;
 import jakarta.persistence.PersistenceException;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Transactional
+@Import(NoSecurityTestConfig.class)
 class UserIntegrationTest {
 
     @Autowired
