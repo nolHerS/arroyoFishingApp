@@ -95,7 +95,13 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
-
+        <!-- Descomentar cuando quieras enviar emails reales -->
+        <!--
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        -->
     </dependencies>
 
     <build>
