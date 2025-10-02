@@ -7,9 +7,11 @@ import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
+import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.service.FishCaptureService;
 import com.example.fishingapp.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,48 +20,58 @@ public class FishCaptureServiceImpl implements FishCaptureService {
 
     private final FishCaptureRepository fishCaptureRepository;
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
-    public FishCaptureServiceImpl(FishCaptureRepository fishCaptureRepository, UserService userService) {
+    public FishCaptureServiceImpl(FishCaptureRepository fishCaptureRepository, UserRepository userRepository) {
         this.fishCaptureRepository = fishCaptureRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @Override
+    @Transactional
     public FishCaptureDto createFishCapture(FishCaptureDto fishCaptureDto, Long userId) {
-
-        User user = UserMapper.mapUser(userService.findById(userId));
+        // Buscar User directamente desde el repositorio
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
 
         FishCapture fishCapture = FishCaptureMapper.mapFishCapture(fishCaptureDto, user);
-
         FishCapture savedFishCapture = fishCaptureRepository.save(fishCapture);
 
         return FishCaptureMapper.mapFishCaptureDto(savedFishCapture);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FishCaptureDto findById(Long id) {
-
-        return fishCaptureRepository.findById(id).map(FishCaptureMapper::mapFishCaptureDto).orElseThrow(
-                () -> new ResourceNotFoundException("FishCapture", "id", id.toString())
-        );
+        return fishCaptureRepository.findById(id)
+                .map(FishCaptureMapper::mapFishCaptureDto)
+                .orElseThrow(() -> new ResourceNotFoundException("FishCapture", "id", id.toString()));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FishCaptureDto> getAllFishCapturesByUsername(String userName) {
+        // Buscar User directamente desde el repositorio
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", userName));
 
-        User user = UserMapper.mapUser(userService.findByUsername(userName));
-
-        return fishCaptureRepository.findByUser(user).stream().map(FishCaptureMapper::mapFishCaptureDto).toList();
+        return fishCaptureRepository.findByUser(user)
+                .stream()
+                .map(FishCaptureMapper::mapFishCaptureDto)
+                .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FishCaptureDto> getAllFishCapture() {
-
-        return fishCaptureRepository.findAll().stream().map(FishCaptureMapper::mapFishCaptureDto).toList();
+        return fishCaptureRepository.findAll()
+                .stream()
+                .map(FishCaptureMapper::mapFishCaptureDto)
+                .toList();
     }
 
     @Override
+    @Transactional
     public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto, Long requestingUserId) {
         FishCapture existingFishCapture = fishCaptureRepository.findById(fishCaptureDto.id())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -80,9 +92,16 @@ public class FishCaptureServiceImpl implements FishCaptureService {
         return FishCaptureMapper.mapFishCaptureDto(fishCaptureRepository.save(existingFishCapture));
     }
 
-
     @Override
-    public void deleteFishCaptureDto(Long fishCaptureId) {
+    @Transactional
+    public void deleteFishCaptureDto(Long fishCaptureId, Long requestingUserId) {
+        FishCapture fishCapture = fishCaptureRepository.findById(fishCaptureId)
+                .orElseThrow(() -> new ResourceNotFoundException("FishCapture", "id", fishCaptureId.toString()));
+
+        // Validar que el usuario sea el dueño
+        if (!fishCapture.getUser().getId().equals(requestingUserId)) {
+            throw new IllegalStateException("No tienes permiso para eliminar esta captura");
+        }
 
         fishCaptureRepository.deleteById(fishCaptureId);
     }

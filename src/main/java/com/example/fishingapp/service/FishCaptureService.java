@@ -16,5 +16,5 @@ public interface FishCaptureService {
 
     FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto, Long userId);
 
-    void deleteFishCaptureDto(Long fishCaptureId);
+    void deleteFishCaptureDto(Long fishCaptureId, Long userCaptureId);
 }

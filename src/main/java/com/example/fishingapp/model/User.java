@@ -30,4 +30,6 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private AuthUser authUser;
+
+    //Preguntar a la IA sobre como realizar el mapper bien tanto de user como de FishCapture
 }

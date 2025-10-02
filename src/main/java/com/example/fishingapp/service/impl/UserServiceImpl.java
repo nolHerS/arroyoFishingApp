@@ -8,6 +8,7 @@ import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto findByUsername(String userName) {
 
         return userRepository.findByUsername(userName).map(UserMapper::mapUserDto).orElseThrow(
@@ -31,6 +33,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto findById(Long id) {
 
         return userRepository.findById(id).map(UserMapper::mapUserDto).orElseThrow(
@@ -39,16 +42,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream().map(UserMapper::mapUserDto).toList();
     }
 
     @Override
+    @Transactional
     public UserDto updateUserDto(UserDto userDto) {
-
-        User existingUser = userRepository.findById(userDto.id()).orElseThrow(() -> new ResourceNotFoundException(
-                "user", "id", userDto.id().toString()
-        ));
+        User existingUser = userRepository.findById(userDto.id())
+                .orElseThrow(() -> new ResourceNotFoundException("user", "id", userDto.id().toString()));
 
         // Verificar si el nuevo username ya existe (y no es el mismo usuario)
         if (!existingUser.getUsername().equals(userDto.username())) {
@@ -75,10 +78,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "username", username));
 
-        userRepository.delete(user); // Elimina User y AuthUser automáticamente
+        userRepository.delete(user); // Elimina User y AuthUser automáticamente por cascade
     }
 }
