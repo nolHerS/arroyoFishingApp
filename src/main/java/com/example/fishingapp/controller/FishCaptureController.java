@@ -34,17 +34,11 @@ public class FishCaptureController {
         );
     }
 
-    /**
-     * Buscar captura por ID (público o autenticado según prefieras)
-     */
     @GetMapping("/{idFishCapture}")
     public ResponseEntity<FishCaptureDto> findFishCaptureById(@PathVariable Long idFishCapture) {
         return new ResponseEntity<>(fishCaptureService.findById(idFishCapture), HttpStatus.OK);
     }
 
-    /**
-     * Obtener todas las capturas de un usuario (público)
-     */
     @GetMapping("/user/{username}")
     public ResponseEntity<List<FishCaptureDto>> getFishCaptureByUsername(@PathVariable String username) {
         return new ResponseEntity<>(
@@ -53,17 +47,11 @@ public class FishCaptureController {
         );
     }
 
-    /**
-     * Obtener todas las capturas (público para que todos vean)
-     */
     @GetMapping
     public ResponseEntity<List<FishCaptureDto>> getAllCaptures() {
         return new ResponseEntity<>(fishCaptureService.getAllFishCapture(), HttpStatus.OK);
     }
 
-    /**
-     * Actualizar captura (solo el dueño o admin)
-     */
     @PutMapping("/{idFishCapture}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FishCaptureDto> updateFishCapture(
@@ -71,25 +59,24 @@ public class FishCaptureController {
             @RequestBody FishCaptureDto fishCaptureDto,
             @AuthenticationPrincipal AuthUser authUser) {
 
-        // TODO: Validar que el usuario sea el dueño de la captura
+        Long userId = authUser.getUser().getId();
+        // Pasar el userId para validación
         return new ResponseEntity<>(
-                fishCaptureService.updateFishCaptureDto(fishCaptureDto),
+                fishCaptureService.updateFishCaptureDto(fishCaptureDto, userId),
                 HttpStatus.OK
         );
     }
 
-    /**
-     * Eliminar captura (solo el dueño o admin)
-     */
     @DeleteMapping("/{idFishCapture}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> deleteFishCapture(
             @PathVariable Long idFishCapture,
             @AuthenticationPrincipal AuthUser authUser) {
 
-        // TODO: Validar que el usuario sea el dueño de la captura
+        Long userId = authUser.getUser().getId();
         FishCaptureDto fishCaptureDto = fishCaptureService.findById(idFishCapture);
-        fishCaptureService.deleteFishCaptureDto(idFishCapture);
+        // Pasar el userId para validación
+        fishCaptureService.deleteFishCaptureDto(idFishCapture, userId);
         return new ResponseEntity<>(
                 "Captura borrada: " + fishCaptureDto.toString(),
                 HttpStatus.OK
