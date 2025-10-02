@@ -38,9 +38,11 @@ public class AuthUser implements UserDetails {
     private Role role;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean enabled = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean accountNonLocked = true;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

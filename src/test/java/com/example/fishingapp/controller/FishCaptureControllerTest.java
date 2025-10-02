@@ -2,6 +2,7 @@ package com.example.fishingapp.controller;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
+import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.service.FishCaptureService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -211,7 +212,7 @@ class FishCaptureControllerTest {
                 LocalDate.of(2025, 9, 26), "Lago Grande", LocalDateTime.now()
         );
 
-        when(fishCaptureService.updateFishCaptureDto(any(FishCaptureDto.class)))
+        when(fishCaptureService.updateFishCaptureDto(any(FishCaptureDto.class), anyLong()))
                 .thenReturn(updatedDto);
 
         mockMvc.perform(put("/api/fishCaptures")
@@ -223,7 +224,7 @@ class FishCaptureControllerTest {
                 .andExpect(jsonPath("$.weight", is(3.0)))
                 .andExpect(jsonPath("$.location", is("Lago Grande")));
 
-        verify(fishCaptureService).updateFishCaptureDto(any(FishCaptureDto.class));
+        verify(fishCaptureService).updateFishCaptureDto(any(FishCaptureDto.class), anyLong());
     }
 
 
@@ -232,7 +233,7 @@ class FishCaptureControllerTest {
         FishCaptureDto captureDto = new FishCaptureDto(1L, 1L, "Trucha", 2.5F,
                 LocalDate.of(2025,9,25),"Rio Tajo", LocalDateTime.now());
 
-        when(fishCaptureService.updateFishCaptureDto(any(FishCaptureDto.class)))
+        when(fishCaptureService.updateFishCaptureDto(any(FishCaptureDto.class), anyLong()))
                 .thenThrow(new ResourceNotFoundException("FishCapture","id","1"));
 
         mockMvc.perform(put("/api/fishCaptures")
@@ -247,6 +248,7 @@ class FishCaptureControllerTest {
     @Test
     void deleteFishCapture_returnsOkMessage() throws Exception {
         Long captureId = 1L;
+        Long userId = 1L;
 
         FishCaptureDto captureDto = new FishCaptureDto(
                 captureId,
@@ -262,7 +264,7 @@ class FishCaptureControllerTest {
         when(fishCaptureService.findById(captureId)).thenReturn(captureDto);
 
         // Mock: el delete no devuelve nada
-        doNothing().when(fishCaptureService).deleteFishCaptureDto(captureId);
+        doNothing().when(fishCaptureService).deleteFishCaptureDto(captureId, userId);
 
         // Ejecutamos DELETE
         mockMvc.perform(delete("/api/fishCaptures/{idFishCapture}", captureId))
@@ -271,12 +273,13 @@ class FishCaptureControllerTest {
 
         // Verificamos que los métodos fueron llamados
         verify(fishCaptureService).findById(captureId);
-        verify(fishCaptureService).deleteFishCaptureDto(captureId);
+        verify(fishCaptureService).deleteFishCaptureDto(captureId, userId);
     }
 
     @Test
     void deleteFishCapture_throwsResourceNotFound() throws Exception {
         Long captureId = 1L;
+        Long userId = 1L;
         when(fishCaptureService.findById(captureId))
                 .thenThrow(new ResourceNotFoundException("FishCapture","id",captureId.toString()));
 
@@ -286,6 +289,6 @@ class FishCaptureControllerTest {
                 .andExpect(jsonPath("$.message").value("FishCapture not found with id : '1'"))
                 .andExpect(jsonPath("$.path").value("/api/fishCaptures/1"));
 
-        verify(fishCaptureService, never()).deleteFishCaptureDto(captureId);
+        verify(fishCaptureService, never()).deleteFishCaptureDto(captureId, userId);
     }
 }
