@@ -43,7 +43,7 @@ public class AuthUser implements UserDetails {
     @Column(nullable = false)
     private Boolean accountNonLocked = true;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private User user;
 

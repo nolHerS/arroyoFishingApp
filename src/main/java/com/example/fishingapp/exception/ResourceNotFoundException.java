@@ -15,4 +15,12 @@ public class ResourceNotFoundException  extends RuntimeException{
         this.fieldValue = fieldValue;
         this.fieldName = fieldName;
     }
+
+    // Constructor adicional para mensajes simples (AÑADIR ESTE)
+    public ResourceNotFoundException(String message) {
+        super(message);
+        this.resourceName = null;
+        this.fieldName = null;
+        this.fieldValue = null;
+    }
 }

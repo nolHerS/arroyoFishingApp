@@ -60,13 +60,16 @@ public class FishCaptureServiceImpl implements FishCaptureService {
     }
 
     @Override
-    public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto) {
+    public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto, Long requestingUserId) {
+        FishCapture existingFishCapture = fishCaptureRepository.findById(fishCaptureDto.id())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "FishCapture", "id", fishCaptureDto.id().toString()
+                ));
 
-        FishCapture existingFishCapture = fishCaptureRepository.findById(fishCaptureDto.id()).orElseThrow(
-                () -> new ResourceNotFoundException(
-                        "FishCapture","id", fishCaptureDto.id().toString()
-                )
-        );
+        // Validar que el usuario sea el dueño
+        if (!existingFishCapture.getUser().getId().equals(requestingUserId)) {
+            throw new IllegalStateException("No tienes permiso para editar esta captura");
+        }
 
         existingFishCapture.setFishType(fishCaptureDto.fishType());
         existingFishCapture.setCaptureDate(fishCaptureDto.captureData());

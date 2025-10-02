@@ -21,21 +21,6 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    @Override
-    public UserDto createUser(UserDto userDto) {
-
-        Optional<User> optionalUser = userRepository.findByUsername(userDto.username());
-
-        if(optionalUser.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userDto.username());
-        }
-
-        User user = UserMapper.mapUser(userDto);
-
-        User savedUser = userRepository.save(user);
-
-        return UserMapper.mapUserDto(savedUser);
-    }
 
     @Override
     public UserDto findByUsername(String userName) {
@@ -62,33 +47,38 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUserDto(UserDto userDto) {
 
         User existingUser = userRepository.findById(userDto.id()).orElseThrow(() -> new ResourceNotFoundException(
-                "user","id",userDto.id().toString()
+                "user", "id", userDto.id().toString()
         ));
 
-        Optional<User> existingUsername = userRepository.findByUsername(userDto.username());
+        // Verificar si el nuevo username ya existe (y no es el mismo usuario)
+        if (!existingUser.getUsername().equals(userDto.username())) {
+            Optional<User> existingUsername = userRepository.findByUsername(userDto.username());
+            if (existingUsername.isPresent()) {
+                throw new UsernameAlreadyExistsException("Username Already Exists For User " + userDto.username());
+            }
+        }
 
-        if(existingUsername.isPresent()){
-            throw new UsernameAlreadyExistsException("Username Already Exists For User "+userDto.username());
+        // Verificar si el nuevo email ya existe (y no es el mismo usuario)
+        if (!existingUser.getEmail().equals(userDto.email())) {
+            Optional<User> existingEmail = userRepository.findByEmail(userDto.email());
+            if (existingEmail.isPresent()) {
+                throw new UsernameAlreadyExistsException("Email Already Exists: " + userDto.email());
+            }
         }
 
         existingUser.setFullName(userDto.fullName());
         existingUser.setEmail(userDto.email());
         existingUser.setUsername(userDto.username());
 
-        User updateUser = userRepository.save(existingUser);
-
-        return UserMapper.mapUserDto(updateUser);
+        User updatedUser = userRepository.save(existingUser);
+        return UserMapper.mapUserDto(updatedUser);
     }
 
     @Override
     public void deleteUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("user", "username", username));
 
-        Optional<User> existingUsername = userRepository.findByUsername(username);
-
-        userRepository.delete(existingUsername.orElseThrow(() -> new ResourceNotFoundException(
-                "user","id",username
-        )));
-
-
+        userRepository.delete(user); // Elimina User y AuthUser automáticamente
     }
 }

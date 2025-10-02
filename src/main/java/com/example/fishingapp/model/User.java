@@ -1,5 +1,6 @@
 package com.example.fishingapp.model;
 
+import com.example.fishingapp.security.AuthUser;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,4 +28,6 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private AuthUser authUser;
 }

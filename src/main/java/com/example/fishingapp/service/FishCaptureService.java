@@ -14,7 +14,7 @@ public interface FishCaptureService {
 
     List<FishCaptureDto> getAllFishCapture();
 
-    FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto);
+    FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto, Long userId);
 
     void deleteFishCaptureDto(Long fishCaptureId);
 }
