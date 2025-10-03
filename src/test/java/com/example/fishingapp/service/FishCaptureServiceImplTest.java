@@ -6,6 +6,7 @@ import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
+import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.service.impl.FishCaptureServiceImpl;
 import com.example.fishingapp.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -13,10 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -29,6 +32,9 @@ class FishCaptureServiceImplTest {
 
     @Mock
     private FishCaptureRepository fishCaptureRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private FishCaptureServiceImpl fishCaptureService;
@@ -50,10 +56,16 @@ class FishCaptureServiceImplTest {
                 LocalDateTime.now()
         );
 
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
 
         // Mock del servicio de usuarios
-        when(userService.findById(userId)).thenReturn(UserMapper.mapUserDto(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // Mock del repositorio: devuelve el objeto guardado con id
         FishCapture savedCapture = new FishCapture(
@@ -95,9 +107,7 @@ class FishCaptureServiceImplTest {
                 LocalDateTime.now()
         );
 
-        when(userService.findById(userId)).thenThrow(
-                new ResourceNotFoundException("User", "id", userId.toString())
-        );
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
@@ -114,7 +124,12 @@ class FishCaptureServiceImplTest {
     @Test
     void findById_returnsFishCapture_whenExists() {
         Long captureId = 1L;
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
 
         FishCapture capture = new FishCapture(
                 1L,
@@ -158,10 +173,15 @@ class FishCaptureServiceImplTest {
     @Test
     void getAllFishCapturesByUsername_returnsList_whenCapturesExist() {
         String username = "ImaHer";
-        User user = new User(1L, username, "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username(username)
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
 
         // Mock del servicio de usuarios
-        when(userService.findByUsername(username)).thenReturn(UserMapper.mapUserDto(user));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         // Datos de capturas
         FishCapture capture1 = new FishCapture();
@@ -209,10 +229,16 @@ class FishCaptureServiceImplTest {
     @Test
     void getAllFishCapturesByUsername_returnsEmptyList_whenNoCapturesExist() {
         String username = "ImaHer";
-        User user = new User(1L, username, "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username(username)
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
 
         // Mock del servicio de usuarios
-        when(userService.findByUsername(username)).thenReturn(UserMapper.mapUserDto(user));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         // Mock del repositorio: lista vacía
         when(fishCaptureRepository.findByUser(user)).thenReturn(java.util.List.of());
@@ -226,7 +252,12 @@ class FishCaptureServiceImplTest {
 
     @Test
     void getAllFishCapture_returnsList_whenCapturesExist() {
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
 
         FishCapture capture1 = new FishCapture();
         capture1.setId(1L);
@@ -286,7 +317,13 @@ class FishCaptureServiceImplTest {
     @Test
     void updateFishCaptureDto_updatesCapture_whenExists() {
         Long captureId = 1L;
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        Long userId = 1L;
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
 
         FishCapture existingCapture = new FishCapture();
         existingCapture.setId(captureId);
@@ -311,7 +348,7 @@ class FishCaptureServiceImplTest {
         when(fishCaptureRepository.findById(captureId)).thenReturn(java.util.Optional.of(existingCapture));
         when(fishCaptureRepository.save(any(FishCapture.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        FishCaptureDto result = fishCaptureService.updateFishCaptureDto(inputDto);
+        FishCaptureDto result = fishCaptureService.updateFishCaptureDto(inputDto,userId);
 
         // Comprobaciones
         assertThat(result, notNullValue());
@@ -328,6 +365,7 @@ class FishCaptureServiceImplTest {
     @Test
     void updateFishCaptureDto_throwsException_whenNotExists() {
         Long captureId = 1L;
+        Long userId = 1L;
         FishCaptureDto inputDto = new FishCaptureDto(
                 captureId,
                 1L,
@@ -343,7 +381,7 @@ class FishCaptureServiceImplTest {
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> fishCaptureService.updateFishCaptureDto(inputDto)
+                () -> fishCaptureService.updateFishCaptureDto(inputDto,userId)
         );
 
         assertThat(exception.getMessage(), containsString("FishCapture"));
@@ -357,9 +395,24 @@ class FishCaptureServiceImplTest {
     @Test
     void deleteFishCaptureDto_callsRepository_whenExists() {
         Long captureId = 1L;
+        Long userId = 1L;
+
+        User user = User.builder()
+                .id(userId)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
+        FishCapture existingCapture = new FishCapture();
+        existingCapture.setId(captureId);
+        existingCapture.setUser(user);
+
+        // Mock: la captura existe
+        when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
 
         // Ejecutar método
-        fishCaptureService.deleteFishCaptureDto(captureId);
+        fishCaptureService.deleteFishCaptureDto(captureId, userId);
 
         // Verificar que deleteById se llamó una vez con el id correcto
         verify(fishCaptureRepository).deleteById(captureId);
@@ -368,13 +421,28 @@ class FishCaptureServiceImplTest {
     @Test
     void deleteFishCaptureDto_throwsException_whenRepositoryFails() {
         Long captureId = 1L;
+        Long userId = 1L;
 
-        // Mock del repositorio para lanzar excepción
+        User user = User.builder()
+                .id(userId)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
+        FishCapture existingCapture = new FishCapture();
+        existingCapture.setId(captureId);
+        existingCapture.setUser(user);
+
+        // Mock: la captura existe
+        when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
+
+        // Mock del repositorio para lanzar excepción al eliminar
         doThrow(new RuntimeException("Error al eliminar")).when(fishCaptureRepository).deleteById(captureId);
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> fishCaptureService.deleteFishCaptureDto(captureId)
+                () -> fishCaptureService.deleteFishCaptureDto(captureId, userId)
         );
 
         assertThat(exception.getMessage(), containsString("Error al eliminar"));

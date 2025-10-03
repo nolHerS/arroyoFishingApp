@@ -1,26 +1,42 @@
 -- Borrar tablas si existen (importante para tests repetidos)
-DROP TABLE IF EXISTS fish_captures;
-DROP TABLE IF EXISTS users;
-
--- Crear tabla de usuarios
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    full_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255)
-);
-
--- Crear tabla de capturas de peces
-CREATE TABLE fish_captures (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    capture_date DATE NOT NULL,
-    created_at TIMESTAMP,
-    fish_type VARCHAR(255) NOT NULL,
-    location VARCHAR(255),
-    weight FLOAT NOT NULL,
-    user_id BIGINT NOT NULL,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+--DROP TABLE IF EXISTS fish_captures;
+--DROP TABLE IF EXISTS auth_users;
+--DROP TABLE IF EXISTS users;
+--
+---- Tabla users
+--CREATE TABLE IF NOT EXISTS users (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    username VARCHAR(50) UNIQUE NOT NULL,
+--    full_name VARCHAR(100) NOT NULL,
+--    email VARCHAR(100) UNIQUE NOT NULL
+--);
+--
+---- Tabla auth_users
+--CREATE TABLE IF NOT EXISTS auth_users (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    user_id BIGINT UNIQUE NOT NULL,
+--    username VARCHAR(50) UNIQUE NOT NULL,
+--    password VARCHAR(255) NOT NULL,
+--    email VARCHAR(100) UNIQUE NOT NULL,
+--    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+--    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+--    account_non_locked BOOLEAN NOT NULL DEFAULT TRUE,
+--    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--    last_login_at TIMESTAMP,
+--    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+--);
+--
+---- Tabla fish_captures
+--CREATE TABLE IF NOT EXISTS fish_captures (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    user_id BIGINT NOT NULL,
+--    fish_type VARCHAR(50) NOT NULL,
+--    weight FLOAT NOT NULL,
+--    capture_date DATE NOT NULL,
+--    location VARCHAR(100),
+--    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+--);
 
 ---- Datos de ejemplo para usuarios
 --INSERT INTO users (username, full_name, email) VALUES

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,12 @@ class UsersServiceImplTest {
 
     @Test
     void findById_returnsUser_whenExists() {
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         User result = UserMapper.mapUser(userService.findById(1L));
@@ -57,52 +63,14 @@ class UsersServiceImplTest {
     }
 
     @Test
-    void createUser_savesUser_whenUsernameDoesNotExist() {
-        UserDto inputDto = new UserDto(null, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-        User mappedUser = new User(null, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-        User savedUser = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-
-        // Mock del repositorio
-        when(userRepository.findByUsername("ImaHer")).thenReturn(Optional.empty());
-        when(userRepository.save(mappedUser)).thenReturn(savedUser);
-
-        // Ejecutar el método
-        UserDto result = userService.createUser(inputDto);
-
-        // Verificaciones con AssertJ
-        assertThat(result, notNullValue());
-        assertThat(result.username(), containsString("ImaHer"));
-        assertThat(result.id(), is(1L));
-
-        // Verificar que se llamó al save
-        verify(userRepository).save(mappedUser);
-    }
-
-    @Test
-    void createUser_throwsException_whenUsernameAlreadyExists() {
-        UserDto inputDto = new UserDto(null, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-        User existingUser = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-
-        // Mock del repositorio: el username ya existe
-        when(userRepository.findByUsername("ImaHer")).thenReturn(Optional.of(existingUser));
-
-        // Ejecutar y verificar excepción
-        UsernameAlreadyExistsException exception = assertThrows(
-                UsernameAlreadyExistsException.class,
-                () -> userService.createUser(inputDto)
-        );
-
-        assertThat(exception.getMessage(), containsString("Username Already Exists For User"));
-        assertThat(exception.getMessage(), containsString("ImaHer"));
-
-        // Verificar que no se llamó a save
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
     void findByUsername_returnsUser_whenExists() {
         // Datos de prueba
-        User user = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
+        User user = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
         String username = "ImaHer";
 
         // Mock del repositorio
@@ -138,8 +106,18 @@ class UsersServiceImplTest {
     @Test
     void findAllUsers_returnAllUsers_whenExists(){
         List<User> users = List.of(
-                new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com"),
-                new User(2L, "AnaLopez", "Ana Lopez", "ana@prueba.com")
+                User.builder()
+                        .id(1L)
+                        .username("ImaHer")
+                        .fullName("Imanol Hernandez")
+                        .email("imanol@prueba.com")
+                        .build(),
+                User.builder()
+                        .id(2L)
+                        .username("AnaLopez")
+                        .fullName("Ana Lopez")
+                        .email("ana@prueba.com")
+                        .build()
         );
 
         when(userRepository.findAll()).thenReturn(users);
@@ -151,7 +129,7 @@ class UsersServiceImplTest {
         assertThat(existingUsers.get(0).getEmail(), is("imanol@prueba.com"));
         assertThat(existingUsers.get(1).getEmail(), is("ana@prueba.com"));
 
-        assertThat(existingUsers, hasItem(new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com")));
+        assertThat(existingUsers, hasItem(hasProperty("username", is("ImaHer"))));
 
     }
 
@@ -171,8 +149,18 @@ class UsersServiceImplTest {
     void updateUserDto_updatesUser_whenValid() {
         // Datos de prueba
         UserDto inputDto = new UserDto(1L, "ImaHerUpdated", "Imanol Hernandez Updated", "imanol@prueba.com");
-        User existingUser = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-        User updatedUser = new User(1L, "ImaHerUpdated", "Imanol Hernandez Updated", "imanol@prueba.com");
+        User existingUser = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+        User updatedUser = User.builder()
+                .id(1L)
+                .username("ImaHerUpdated")
+                .fullName("Imanol Hernandez Updated")
+                .email("imanol@prueba.com")
+                .build();
 
         // Mock del repositorio
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
@@ -212,8 +200,18 @@ class UsersServiceImplTest {
     @Test
     void updateUserDto_throwsException_whenUsernameAlreadyExists() {
         UserDto inputDto = new UserDto(1L, "ExistingUsername", "Imanol Hernandez Updated", "imanol@prueba.com");
-        User existingUser = new User(1L, "ImaHer", "Imanol Hernandez", "imanol@prueba.com");
-        User otherUserWithSameUsername = new User(2L, "ExistingUsername", "Ana Lopez", "ana@prueba.com");
+        User existingUser = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+        User otherUserWithSameUsername = User.builder()
+                .id(2L)
+                .username("ExistingUsername")
+                .fullName("Ana Lopez")
+                .email("ana@prueba.com")
+                .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByUsername("ExistingUsername")).thenReturn(Optional.of(otherUserWithSameUsername));
@@ -231,7 +229,12 @@ class UsersServiceImplTest {
     @Test
     void deleteUser_deletesUser_whenExists() {
         String username = "ImaHer";
-        User existingUser = new User(1L, username, "Imanol Hernandez", "imanol@prueba.com");
+        User existingUser = User.builder()
+                .id(1L)
+                .username(username)
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
 
         // Mock del repositorio
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(existingUser));
@@ -256,7 +259,7 @@ class UsersServiceImplTest {
                 () -> userService.deleteUser(username)
         );
 
-        assertThat(exception.getMessage(), equalTo("user not found with id : 'ImaHer'"));
+        assertThat(exception.getMessage(), equalTo("user not found with username : 'ImaHer'"));
 
         // Verificar que no se llamó a delete
         verify(userRepository, never()).delete(any());

@@ -3,7 +3,7 @@ package com.example.fishingapp.integration;
 import com.example.fishingapp.config.NoSecurityTestConfig;
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
-import com.example.fishingapp.exception.UsernameAlreadyExistsException;
+import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.service.UserService;
@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
-@Import(NoSecurityTestConfig.class)
+//@Import(NoSecurityTestConfig.class)
 class UserServiceIntegrationTest {
 
     @Autowired
@@ -32,7 +34,7 @@ class UserServiceIntegrationTest {
     @Autowired
     private FishCaptureRepository fishCaptureRepository;
 
-    private UserDto usuarioAna;
+    private User usuarioAna;
 
     @BeforeEach
     void setUp() {
@@ -42,30 +44,12 @@ class UserServiceIntegrationTest {
         // Limpiar usuarios
         userRepository.deleteAll();
 
-        // Insertar usuario inicial
-        usuarioAna = new UserDto(null, "ana", "Ana García", "ana@example.com");
-        userService.createUser(usuarioAna);
-    }
-
-    // ===== CASO OK: Crear usuario =====
-    @Test
-    void testCreateUser_ok() {
-        UserDto nuevoUsuario = new UserDto(null, "juan", "Juan Pérez", "juan@example.com");
-
-        UserDto creado = userService.createUser(nuevoUsuario);
-
-        assertThat(creado.id(), is(notNullValue()));
-        assertThat(creado.username(), is(equalTo("juan")));
-        assertThat(creado.fullName(), is(equalTo("Juan Pérez")));
-        assertThat(creado.email(), is(equalTo("juan@example.com")));
-    }
-
-    // ===== CASO KO: Crear usuario con username existente =====
-    @Test
-    void testCreateUser_ko_usernameExistente() {
-        UserDto duplicado = new UserDto(null, "ana", "Ana García 2", "ana2@example.com");
-
-        assertThrows(UsernameAlreadyExistsException.class, () -> userService.createUser(duplicado));
+        // Insertar usuario inicial usando directamente el repositorio
+        usuarioAna = userRepository.save(User.builder()
+                .username("ana")
+                .fullName("Ana García")
+                .email("ana@example.com")
+                .build());
     }
 
     // ===== CASO OK: Buscar usuario por username =====

@@ -1,7 +1,6 @@
 package com.example.fishingapp.integration;
 
 import com.example.fishingapp.config.NoSecurityTestConfig;
-import com.example.fishingapp.config.TestBeansConfig;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -23,8 +23,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Transactional
-@ActiveProfiles(value = "test")
-@Import(NoSecurityTestConfig.class)
+//@Import(NoSecurityTestConfig.class)
 class FishCaptureIntegrationTest {
 
     @Autowired
