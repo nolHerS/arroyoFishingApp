@@ -39,7 +39,7 @@ public class UserController {
 
     @PutMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserDto> updateUser(UserDto userDto){
+    public ResponseEntity<UserDto> updateUser(@RequestBody UserDto userDto){
         return new ResponseEntity<>(userService.updateUserDto(userDto),HttpStatus.OK);
     }
 

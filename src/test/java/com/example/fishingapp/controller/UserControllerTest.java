@@ -1,6 +1,5 @@
 package com.example.fishingapp.controller;
 
-import com.example.fishingapp.config.NoSecurityTestConfig;
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.UserRepository;
@@ -10,10 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,9 +18,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
-//@Import(NoSecurityTestConfig.class)
 class UserControllerTest {
 
     @Autowired
@@ -37,7 +33,7 @@ class UserControllerTest {
 
     private User testUser;
 
-    @BeforeEach
+   @BeforeEach
     void setUp() {
         userRepository.deleteAll();
 
@@ -49,6 +45,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findAllUsers_returnsList() throws Exception {
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
@@ -57,6 +54,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findAllUsers_throwsException() throws Exception {
         userRepository.deleteAll();
 
@@ -66,20 +64,23 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findUserById_returnsUser_whenExists() throws Exception {
-        mockMvc.perform(get("/api/users/" + testUser.getId()))
+        mockMvc.perform(get("/api/users/id/" + testUser.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("testuser"))
                 .andExpect(jsonPath("$.fullName").value("Test User"));
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findUserById_throwsResourceNotFound() throws Exception {
-        mockMvc.perform(get("/api/users/999"))
+        mockMvc.perform(get("/api/users/id/999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findUserByUsername_returnsUser() throws Exception {
         mockMvc.perform(get("/api/users/username/" + testUser.getUsername()))
                 .andExpect(status().isOk())
@@ -87,12 +88,14 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void findUserByUsername_throwsResourceNotFound() throws Exception {
         mockMvc.perform(get("/api/users/username/noexiste"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void updateUser_returnsUpdatedUser() throws Exception {
         UserDto updatedDto = new UserDto(
                 testUser.getId(),
@@ -101,7 +104,7 @@ class UserControllerTest {
                 "updated@example.com"
         );
 
-        mockMvc.perform(put("/api/users/" + testUser.getId())
+        mockMvc.perform(put("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedDto)))
                 .andExpect(status().isOk())
@@ -110,22 +113,25 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void updateUser_throwsResourceNotFound() throws Exception {
         UserDto dto = new UserDto(999L, "test", "Test", "test@test.com");
 
-        mockMvc.perform(put("/api/users/999")
+        mockMvc.perform(put("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void deleteUser_returnsOkMessage() throws Exception {
         mockMvc.perform(delete("/api/users/" + testUser.getUsername()))
                 .andExpect(status().isOk());
     }
 
     @Test
+    @WithMockUser(username = "mockuser", roles = "ADMIN")
     void deleteUser_throwsResourceNotFound() throws Exception {
         mockMvc.perform(delete("/api/users/noexiste"))
                 .andExpect(status().isNotFound());

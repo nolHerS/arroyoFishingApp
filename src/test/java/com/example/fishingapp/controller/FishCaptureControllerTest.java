@@ -1,33 +1,35 @@
 package com.example.fishingapp.controller;
 
-import com.example.fishingapp.config.NoSecurityTestConfig;
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.model.User;
+import com.example.fishingapp.repository.AuthUserRepository;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
+import com.example.fishingapp.security.AuthUser;
+import com.example.fishingapp.security.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
-//@Import(NoSecurityTestConfig.class)
 class FishCaptureControllerTest {
 
     @Autowired
@@ -40,6 +42,9 @@ class FishCaptureControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private AuthUserRepository authUserRepository;
+
+    @Autowired
     private FishCaptureRepository fishCaptureRepository;
 
     private User testUser;
@@ -47,13 +52,40 @@ class FishCaptureControllerTest {
     @BeforeEach
     void setUp() {
         fishCaptureRepository.deleteAll();
+        authUserRepository.deleteAll();
         userRepository.deleteAll();
 
-        testUser = userRepository.save(User.builder()
+        // Primero creamos el User
+        testUser = User.builder()
                 .username("testuser")
                 .fullName("Test User")
                 .email("test@example.com")
-                .build());
+                .build();
+
+        testUser = userRepository.save(testUser);
+
+        // Luego creamos el AuthUser vinculado
+        AuthUser testAuthUser = AuthUser.builder()
+                .username(testUser.getUsername())
+                .email(testUser.getEmail())
+                .password("$2a$10$dummypasswordhash")
+                .role(Role.USER)
+                .enabled(true)
+                .accountNonLocked(true)
+                .createdAt(LocalDateTime.now())
+                .user(testUser)
+                .build();
+
+        testAuthUser = authUserRepository.save(testAuthUser);
+
+        // Configurar el SecurityContext con el AuthUser
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        testAuthUser,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + testAuthUser.getRole().name()))
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Test
@@ -78,10 +110,12 @@ class FishCaptureControllerTest {
     }
 
     @Test
-    void createCapture_throwsResourceNotFound() throws Exception {
+    void createCapture_withValidData_ignoresUserIdFromDto() throws Exception {
+        // Este test verifica que el userId del DTO es ignorado
+        // y se usa siempre el del usuario autenticado
         FishCaptureDto dto = new FishCaptureDto(
                 null,
-                999L, // Usuario inexistente
+                999L, // Este ID será ignorado
                 "Trucha",
                 2.5f,
                 LocalDate.of(2025, 9, 25),
@@ -92,12 +126,13 @@ class FishCaptureControllerTest {
         mockMvc.perform(post("/api/fish-captures")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(testUser.getId())) // Verifica que usa el ID correcto
+                .andExpect(jsonPath("$.fishType").value("Trucha"));
     }
 
     @Test
     void findById_returnsCapture_whenExists() throws Exception {
-        // Crear una captura primero
         FishCaptureDto dto = new FishCaptureDto(
                 null,
                 testUser.getId(),
@@ -118,7 +153,6 @@ class FishCaptureControllerTest {
 
         FishCaptureDto created = objectMapper.readValue(response, FishCaptureDto.class);
 
-        // Buscar por ID
         mockMvc.perform(get("/api/fish-captures/" + created.id()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(created.id()))
@@ -133,11 +167,11 @@ class FishCaptureControllerTest {
 
     @Test
     void getAllCaptures_returnsAllFishCaptures() throws Exception {
-        // Crear dos capturas
         FishCaptureDto dto1 = new FishCaptureDto(
                 null, testUser.getId(), "Trucha", 2.5f,
                 LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()
         );
+
         FishCaptureDto dto2 = new FishCaptureDto(
                 null, testUser.getId(), "Lucio", 3.0f,
                 LocalDate.of(2025, 9, 26), "Lago", LocalDateTime.now()
@@ -153,7 +187,6 @@ class FishCaptureControllerTest {
                         .content(objectMapper.writeValueAsString(dto2)))
                 .andExpect(status().isCreated());
 
-        // Obtener todas
         mockMvc.perform(get("/api/fish-captures"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -161,7 +194,6 @@ class FishCaptureControllerTest {
 
     @Test
     void getAllCaptures_throwsException() throws Exception {
-        // Con la BD vacía
         mockMvc.perform(get("/api/fish-captures"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -193,7 +225,6 @@ class FishCaptureControllerTest {
 
     @Test
     void updateFishCapture_returnsUpdatedCapture() throws Exception {
-        // Crear captura
         FishCaptureDto dto = new FishCaptureDto(
                 null, testUser.getId(), "Trucha", 2.5f,
                 LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()
@@ -209,7 +240,6 @@ class FishCaptureControllerTest {
 
         FishCaptureDto created = objectMapper.readValue(response, FishCaptureDto.class);
 
-        // Actualizar
         FishCaptureDto updated = new FishCaptureDto(
                 created.id(), testUser.getId(), "Lucio", 3.0f,
                 LocalDate.of(2025, 9, 26), "Lago", created.createdAt()
@@ -238,7 +268,6 @@ class FishCaptureControllerTest {
 
     @Test
     void deleteFishCapture_returnsOkMessage() throws Exception {
-        // Crear captura
         FishCaptureDto dto = new FishCaptureDto(
                 null, testUser.getId(), "Trucha", 2.5f,
                 LocalDate.of(2025, 9, 25), "Rio Tajo", LocalDateTime.now()
@@ -254,7 +283,6 @@ class FishCaptureControllerTest {
 
         FishCaptureDto created = objectMapper.readValue(response, FishCaptureDto.class);
 
-        // Eliminar
         mockMvc.perform(delete("/api/fish-captures/" + created.id()))
                 .andExpect(status().isOk());
     }
