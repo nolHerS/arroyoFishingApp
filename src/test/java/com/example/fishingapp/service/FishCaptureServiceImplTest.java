@@ -448,4 +448,67 @@ class FishCaptureServiceImplTest {
         assertThat(exception.getMessage(), containsString("Error al eliminar"));
     }
 
+    @Test
+    void updateFishCaptureDto_throwsIllegalStateException_whenUserNotOwner() {
+        Long captureId = 1L;
+        Long requestingUserId = 99L; // No es el dueño
+        Long ownerUserId = 1L;
+
+        User owner = User.builder()
+                .id(ownerUserId)
+                .username("Propietario")
+                .build();
+
+        FishCapture existingCapture = new FishCapture();
+        existingCapture.setId(captureId);
+        existingCapture.setUser(owner);
+
+        FishCaptureDto dto = new FishCaptureDto(
+                captureId,
+                ownerUserId,
+                "Trucha",
+                2.5F,
+                LocalDate.of(2025, 9, 25),
+                "Rio Tajo",
+                LocalDateTime.now()
+        );
+
+        // Mock: la captura existe pero pertenece a otro usuario
+        when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> fishCaptureService.updateFishCaptureDto(dto, requestingUserId)
+        );
+
+        assertThat(exception.getMessage(), containsString("No tienes permiso"));
+        verify(fishCaptureRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteFishCaptureDto_throwsIllegalStateException_whenUserNotOwner() {
+        Long captureId = 1L;
+        Long requestingUserId = 99L; // No es el dueño
+        Long ownerUserId = 1L;
+
+        User owner = User.builder()
+                .id(ownerUserId)
+                .username("Propietario")
+                .build();
+
+        FishCapture existingCapture = new FishCapture();
+        existingCapture.setId(captureId);
+        existingCapture.setUser(owner);
+
+        // Mock: la captura existe pero pertenece a otro usuario
+        when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> fishCaptureService.deleteFishCaptureDto(captureId, requestingUserId)
+        );
+
+        assertThat(exception.getMessage(), containsString("No tienes permiso"));
+        verify(fishCaptureRepository, never()).deleteById(any());
+    }
 }

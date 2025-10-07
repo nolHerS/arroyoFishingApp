@@ -265,5 +265,62 @@ class UsersServiceImplTest {
         verify(userRepository, never()).delete(any());
     }
 
+    @Test
+    void updateUserDto_throwsException_whenEmailAlreadyExists() {
+        // DTO con nuevo email ya en uso
+        UserDto inputDto = new UserDto(1L, "ImaHer", "Imanol Hernandez", "emailEnUso@prueba.com");
+
+        User existingUser = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
+        User userWithSameEmail = User.builder()
+                .id(2L)
+                .username("OtroUsuario")
+                .fullName("Otro Usuario")
+                .email("emailEnUso@prueba.com")
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail("emailEnUso@prueba.com")).thenReturn(Optional.of(userWithSameEmail));
+
+        UsernameAlreadyExistsException exception = assertThrows(
+                UsernameAlreadyExistsException.class,
+                () -> userService.updateUserDto(inputDto)
+        );
+
+        assertThat(exception.getMessage(), equalTo("Email Already Exists: emailEnUso@prueba.com"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void updateUserDto_doesNotChange_whenSameUsernameAndEmail() {
+        User existingUser = User.builder()
+                .id(1L)
+                .username("ImaHer")
+                .fullName("Imanol Hernandez")
+                .email("imanol@prueba.com")
+                .build();
+
+        UserDto inputDto = new UserDto(
+                1L,
+                "ImaHer", // mismo username
+                "Imanol Hernandez actualizado", // solo cambia el nombre
+                "imanol@prueba.com" // mismo email
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        UserDto result = userService.updateUserDto(inputDto);
+
+        assertThat(result, notNullValue());
+        assertThat(result.id(), is(1L));
+        assertThat(result.username(), is("ImaHer"));
+        verify(userRepository, times(1)).save(existingUser);
+    }
 
 }

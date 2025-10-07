@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
@@ -77,31 +78,33 @@ class AuthUserTest {
     }
 
     @Test
-    void testPrePersist_setsDefaultsWhenNull() {
+    void testPrePersist_setsDefaultsWhenNull() throws Exception {
         AuthUser newUser = AuthUser.builder()
                 .username("newuser")
                 .password("pass")
                 .email("new@example.com")
                 .build();
 
-        // Los valores con @Builder.Default ya tienen su valor por defecto
-        assertNotNull(newUser.getEnabled());
-        assertNotNull(newUser.getAccountNonLocked());
-        assertFalse(newUser.getEnabled());
-        assertTrue(newUser.getAccountNonLocked());
+        // Forzamos valores null mediante reflexión
+        Field enabledField = AuthUser.class.getDeclaredField("enabled");
+        enabledField.setAccessible(true);
+        enabledField.set(newUser, null);
 
-        // Antes de persistir, createdAt y role deben ser nulos
-        assertNull(newUser.getCreatedAt());
-        assertNull(newUser.getRole());
+        Field lockedField = AuthUser.class.getDeclaredField("accountNonLocked");
+        lockedField.setAccessible(true);
+        lockedField.set(newUser, null);
 
-        // Ejecutamos el método @PrePersist manualmente
+        assertNull(newUser.getEnabled());
+        assertNull(newUser.getAccountNonLocked());
+
+        // Llamamos al método que queremos cubrir
         newUser.prePersist();
 
-        // Verificamos que prePersist establezca correctamente los valores faltantes
+        // Ahora debe inicializar correctamente los campos
         assertNotNull(newUser.getCreatedAt());
         assertEquals(Role.USER, newUser.getRole());
-        assertFalse(newUser.getEnabled());         // Se mantiene false (según tu método)
-        assertTrue(newUser.getAccountNonLocked()); // Se mantiene true
+        assertFalse(newUser.getEnabled());
+        assertTrue(newUser.getAccountNonLocked());
     }
 
 
