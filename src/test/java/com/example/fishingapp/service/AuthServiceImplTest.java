@@ -1,4 +1,4 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.auth.AuthResponse;
 import com.example.fishingapp.dto.auth.LoginRequest;
@@ -13,13 +13,13 @@ import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.RefreshToken;
 import com.example.fishingapp.security.Role;
-import com.example.fishingapp.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-public class AuthServiceImplTest {
+@TestPropertySource(properties = {
+        "jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B597033733676397924423F4528482B4D6251655468576D5A7134743777217A25432A",
+        "jwt.expiration=3600000",
+        "jwt.refresh-token.expiration=604800000"
+})
+class AuthServiceImplTest {
 
     @Autowired
     private AuthServiceImpl authService;
@@ -94,6 +99,22 @@ public class AuthServiceImplTest {
         );
     }
 
+    @Test
+    void register_withExistingUsername_throwsUsernameAlreadyExistsException() {
+        // Crear usuario existente
+        createTestUser("user@example.com", "existinguser");
+
+        RegisterRequest request = RegisterRequest.builder()
+                .username("existinguser")
+                .fullName("New User")
+                .email("newemail@example.com")
+                .password("password123")
+                .build();
+
+        assertThrows(UsernameAlreadyExistsException.class, () ->
+                authService.register(request)
+        );
+    }
 
     @Test
     void login_withValidCredentials_returnsAuthResponse() {
@@ -119,6 +140,18 @@ public class AuthServiceImplTest {
     }
 
     @Test
+    void login_withInvalidEmail_throwsBadCredentialsException() {
+        LoginRequest request = LoginRequest.builder()
+                .email("nonexistent@example.com")
+                .password("password123")
+                .build();
+
+        assertThrows(BadCredentialsException.class, () ->
+                authService.login(request)
+        );
+    }
+
+    @Test
     void login_withInvalidPassword_throwsBadCredentialsException() {
         createTestUser("user@example.com", "testuser", "correctpassword");
 
@@ -129,23 +162,6 @@ public class AuthServiceImplTest {
 
         assertThrows(BadCredentialsException.class, () ->
                 authService.login(request)
-        );
-    }
-
-    @Test
-    void register_withExistingUsername_throwsUsernameAlreadyExistsException() {
-        // Crear usuario existente
-        createTestUser("user@example.com", "existinguser");
-
-        RegisterRequest request = RegisterRequest.builder()
-                .username("existinguser")
-                .fullName("New User")
-                .email("newemail@example.com")
-                .password("password123")
-                .build();
-
-        assertThrows(UsernameAlreadyExistsException.class, () ->
-                authService.register(request)
         );
     }
 
@@ -310,10 +326,9 @@ public class AuthServiceImplTest {
         assertTrue(refreshTokenRepository.findByToken(secondLogin.getRefreshToken()).isPresent());
     }
 
-
     // Método auxiliar para crear usuarios de prueba
-    private void createTestUser(String email, String username) {
-        createTestUser(email, username, "password123");
+    private AuthUser createTestUser(String email, String username) {
+        return createTestUser(email, username, "password123");
     }
 
     private AuthUser createTestUser(String email, String username, String password) {
@@ -324,13 +339,17 @@ public class AuthServiceImplTest {
                 .build();
         user = userRepository.save(user);
 
-        return AuthUser.builder()
+        AuthUser authUser = AuthUser.builder()
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .role(Role.USER)
                 .enabled(true)
                 .accountNonLocked(true)
-                .createdAt(LocalDateTime.now()).build();
+                .createdAt(LocalDateTime.now())
+                .user(user)
+                .build();
+
+        return authUserRepository.save(authUser);
     }
 }

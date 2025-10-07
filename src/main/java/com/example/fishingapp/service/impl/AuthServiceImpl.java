@@ -67,10 +67,11 @@ public class AuthServiceImpl implements AuthService {
 
         // Crear el AuthUser (tabla auth_users)
         AuthUser authUser = AuthUser.builder()
+                .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
-                .enabled(true) // Cambiar a false si requieres verificación por email
+                .enabled(true)
                 .accountNonLocked(true)
                 .user(savedUser)
                 .build();
