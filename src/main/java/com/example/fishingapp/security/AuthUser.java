@@ -82,7 +82,7 @@ public class AuthUser implements UserDetails {
 
     @Override
     public String getUsername(){
-        return this.email;
+        return this.username;
     }
 
     @Override
