@@ -255,8 +255,17 @@ public class VerificationTokenServiceImplTest {
 
     @Test
     void deleteUserTokens_deletesAllUserTokens() {
-        verificationTokenService.createEmailVerificationToken(testAuthUser);
-        verificationTokenService.createPasswordResetToken(testAuthUser);
+        // Crear token de verificación de email
+        VerificationToken emailToken = verificationTokenService.createEmailVerificationToken(testAuthUser);
+
+        // Crear token de reset de password manualmente para que no elimine el anterior
+        VerificationToken resetToken = VerificationToken.builder()
+                .authUser(testAuthUser)
+                .tokenType(VerificationToken.TokenType.PASSWORD_RESET)
+                .expiryDate(LocalDateTime.now().plusDays(1))
+                .used(false)
+                .build();
+        verificationTokenRepository.save(resetToken);
 
         assertEquals(2, verificationTokenRepository.findAll().size());
 
