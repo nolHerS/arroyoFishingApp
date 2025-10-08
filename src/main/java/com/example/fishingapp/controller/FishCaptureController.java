@@ -3,6 +3,7 @@ package com.example.fishingapp.controller;
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.service.FishCaptureService;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,11 +36,13 @@ public class FishCaptureController {
     }
 
     @GetMapping("/{idFishCapture}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FishCaptureDto> findFishCaptureById(@PathVariable Long idFishCapture) {
         return new ResponseEntity<>(fishCaptureService.findById(idFishCapture), HttpStatus.OK);
     }
 
     @GetMapping("/user/{username}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FishCaptureDto>> getFishCaptureByUsername(@PathVariable String username) {
         return new ResponseEntity<>(
                 fishCaptureService.getAllFishCapturesByUsername(username),
@@ -48,6 +51,7 @@ public class FishCaptureController {
     }
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<FishCaptureDto>> getAllCaptures() {
         return new ResponseEntity<>(fishCaptureService.getAllFishCapture(), HttpStatus.OK);
     }
