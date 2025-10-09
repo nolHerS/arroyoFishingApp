@@ -1,6 +1,7 @@
 package com.example.fishingapp.service;
 
 import com.example.fishingapp.dto.FishCaptureDto;
+import com.example.fishingapp.security.AuthUser;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public interface FishCaptureService {
 
     List<FishCaptureDto> getAllFishCapture();
 
-    FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto, Long userId);
+    FishCaptureDto updateFishCaptureDto (FishCaptureDto fishCaptureDto, Long userId, AuthUser authUser);
 
     void deleteFishCaptureDto(Long fishCaptureId, Long userCaptureId);
 }

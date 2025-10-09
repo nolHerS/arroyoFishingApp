@@ -31,53 +31,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Obtener el header Authorization
-        final String authHeader = request.getHeader("Authorization");
-
-        // Si no hay header o no empieza con "Bearer ", continuar con la cadena
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         try {
-            // Extraer el token (quitar "Bearer ")
+            final String authHeader = request.getHeader("Authorization");
+
+            // Si no hay token, dejar pasar (será tratado como endpoint público si aplica)
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             final String jwt = authHeader.substring(7);
+            final String username = jwtService.extractUsername(jwt);
 
-            // Extraer el email del token
-            final String userEmail = jwtService.extractUsername(jwt);
+            // Solo autenticar si aún no hay usuario en SecurityContext
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Si hay email y no hay autenticación previa en el contexto
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                // Cargar el usuario desde la base de datos
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-                // Validar el token
+                // Validar token
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-
-                    // Crear el objeto de autenticación
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-
-                    // Añadir detalles adicionales de la petición
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-
-                    // Establecer la autenticación en el contexto de seguridad
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
+
         } catch (Exception e) {
-            // Log del error
-            logger.error("Error al procesar el token JWT: {}", e);
+            // Solo loggear, no interrumpir la cadena de filtros
+            logger.error("Error procesando JWT: " + e.getMessage());
         }
 
         // Continuar con la cadena de filtros
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        // No aplicar filtro JWT a endpoints públicos
+        return path.startsWith("/api/auth") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/api/public") ||
+                (path.startsWith("/api/fish-captures") && method.equals("GET")) ||
+                (path.startsWith("/api/users") && method.equals("GET"));
     }
 }

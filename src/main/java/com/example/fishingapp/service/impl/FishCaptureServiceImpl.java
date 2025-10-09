@@ -8,6 +8,7 @@ import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
+import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.service.FishCaptureService;
 import com.example.fishingapp.service.UserService;
 import org.springframework.stereotype.Service;
@@ -72,20 +73,19 @@ public class FishCaptureServiceImpl implements FishCaptureService {
 
     @Override
     @Transactional
-    public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto, Long requestingUserId) {
-        FishCapture existingFishCapture = fishCaptureRepository.findById(fishCaptureDto.id())
+    public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto, Long requestingUserId, AuthUser authUser) {
+        FishCapture existingFishCapture = fishCaptureRepository.findById(requestingUserId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "FishCapture", "id", fishCaptureDto.id().toString()
                 ));
 
         // Validar que el usuario sea el dueño
-        if (!existingFishCapture.getUser().getId().equals(requestingUserId)) {
+        if (!existingFishCapture.getUser().getId().equals(authUser.getUser().getId())) {
             throw new IllegalStateException("No tienes permiso para editar esta captura");
         }
 
         existingFishCapture.setFishType(fishCaptureDto.fishType());
         existingFishCapture.setCaptureDate(fishCaptureDto.captureData());
-        existingFishCapture.setCreatedAt(fishCaptureDto.createdAt());
         existingFishCapture.setLocation(fishCaptureDto.location());
         existingFishCapture.setWeight(fishCaptureDto.weight());
 

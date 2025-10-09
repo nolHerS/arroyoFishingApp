@@ -50,7 +50,12 @@ public class SecurityConfig {
                                 "/swagger-ui/**",         // Swagger UI
                                 "/swagger-ui.html"        // Swagger UI
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/fish-captures/**").permitAll()
+
+                        // Permitir GET en fish-captures (para mostrar capturas públicamente)
+                        .requestMatchers(HttpMethod.GET, "/api/fish-captures", "/api/fish-captures/**").permitAll()
+
+                        // Permitir GET en users (para mostrar nombres de usuarios en las capturas)
+                        .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**").permitAll()
 
                         // Endpoints de administrador
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

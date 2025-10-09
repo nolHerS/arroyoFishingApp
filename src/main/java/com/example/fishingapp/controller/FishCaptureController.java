@@ -51,7 +51,6 @@ public class FishCaptureController {
     }
 
     @GetMapping
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<FishCaptureDto>> getAllCaptures() {
         return new ResponseEntity<>(fishCaptureService.getAllFishCapture(), HttpStatus.OK);
     }
@@ -66,7 +65,7 @@ public class FishCaptureController {
         Long userId = authUser.getUser().getId();
         // Pasar el userId para validación
         return new ResponseEntity<>(
-                fishCaptureService.updateFishCaptureDto(fishCaptureDto, userId),
+                fishCaptureService.updateFishCaptureDto(fishCaptureDto, idFishCapture, authUser),
                 HttpStatus.OK
         );
     }

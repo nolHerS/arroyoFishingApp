@@ -4,6 +4,7 @@ import com.example.fishingapp.dto.auth.AuthResponse;
 import com.example.fishingapp.dto.auth.LoginRequest;
 import com.example.fishingapp.dto.auth.RefreshTokenRequest;
 import com.example.fishingapp.dto.auth.RegisterRequest;
+import com.example.fishingapp.exception.EmailAlreadyExistsException;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
 import com.example.fishingapp.model.User;
@@ -47,13 +48,13 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         // Verificar si el email ya existe
-        if (authUserRepository.existsByEmail(request.getEmail())) {
-            throw new UsernameAlreadyExistsException("El email ya está registrado");
+        if (authUserRepository.existsByUsername(request.getUsername())) {
+            throw new UsernameAlreadyExistsException("El usuario ya está registrado");
         }
 
         // Verificar si el username ya existe
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UsernameAlreadyExistsException("El username ya está en uso");
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("El email ya está en uso");
         }
 
         // Crear el User (tabla users)
@@ -168,9 +169,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void revokeAllUserTokens(String email) {
-        AuthUser authUser = authUserRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("AuthService","Email: "+ email,"Usuario no encontrado"));
+    public void revokeAllUserTokens(String username) {
+        AuthUser authUser = authUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("AuthService","Usuario: "+ username,"Usuario no encontrado"));
 
         refreshTokenRepository.deleteAllByAuthUserId(authUser.getId());
     }
