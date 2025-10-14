@@ -97,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
             // Autenticar con Spring Security
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
+                            request.getIdentifier(),
                             request.getPassword()
                     )
             );
@@ -170,7 +170,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void revokeAllUserTokens(String username) {
-        AuthUser authUser = authUserRepository.findByUsername(username)
+        AuthUser authUser = authUserRepository.findByUsernameOrEmail(username)
                 .orElseThrow(() -> new ResourceNotFoundException("AuthService","Usuario: "+ username,"Usuario no encontrado"));
 
         refreshTokenRepository.deleteAllByAuthUserId(authUser.getId());

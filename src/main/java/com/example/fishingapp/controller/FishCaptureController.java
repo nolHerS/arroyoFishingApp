@@ -3,7 +3,6 @@ package com.example.fishingapp.controller;
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.service.FishCaptureService;
-import jakarta.annotation.security.PermitAll;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

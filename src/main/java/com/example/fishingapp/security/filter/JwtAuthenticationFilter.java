@@ -1,5 +1,6 @@
 package com.example.fishingapp.security.filter;
 
+import com.example.fishingapp.service.CustomUserDetailsService;
 import com.example.fishingapp.service.impl.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,7 +23,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -46,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Solo autenticar si aún no hay usuario en SecurityContext
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsernameOrEmail(username);
 
                 // Validar token
                 if (jwtService.isTokenValid(jwt, userDetails)) {

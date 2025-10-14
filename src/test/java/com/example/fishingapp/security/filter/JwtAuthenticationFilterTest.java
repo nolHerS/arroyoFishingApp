@@ -1,5 +1,6 @@
 package com.example.fishingapp.security.filter;
 
+import com.example.fishingapp.service.CustomUserDetailsService;
 import com.example.fishingapp.service.impl.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,7 +27,7 @@ public class JwtAuthenticationFilterTest {
     private JwtService jwtService;
 
     @Mock
-    private UserDetailsService userDetailsService;
+    private CustomUserDetailsService userDetailsService;
 
     @Mock
     private HttpServletRequest request;
@@ -77,7 +78,7 @@ public class JwtAuthenticationFilterTest {
         String token = "valid.jwt.token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtService.extractUsername(token)).thenReturn("test@example.com");
-        when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
+        when(userDetailsService.loadUserByUsernameOrEmail("test@example.com")).thenReturn(userDetails);
         when(jwtService.isTokenValid(token, userDetails)).thenReturn(true);
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -96,7 +97,7 @@ public class JwtAuthenticationFilterTest {
         String token = "invalid.jwt.token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtService.extractUsername(token)).thenReturn("test@example.com");
-        when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
+        when(userDetailsService.loadUserByUsernameOrEmail("test@example.com")).thenReturn(userDetails);
         when(jwtService.isTokenValid(token, userDetails)).thenReturn(false);
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);

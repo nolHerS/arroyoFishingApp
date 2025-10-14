@@ -1,6 +1,7 @@
 package com.example.fishingapp.security.config;
 
 import com.example.fishingapp.security.filter.JwtAuthenticationFilter;
+import com.example.fishingapp.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +29,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
