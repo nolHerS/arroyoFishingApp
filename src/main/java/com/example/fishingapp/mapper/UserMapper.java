@@ -14,7 +14,6 @@ public class UserMapper {
         user.setUsername(userDto.username());
         user.setFullName(userDto.fullName());
         user.setEmail(userDto.email());
-        // authUser se deja null, se carga lazy desde la BD si existe
         return user;
     }
 

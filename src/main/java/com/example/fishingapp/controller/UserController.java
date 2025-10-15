@@ -20,7 +20,6 @@ public class UserController {
     }
 
     @GetMapping("/username/{username}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDto> findUserByUsername(@PathVariable String username){
         return new ResponseEntity<>(userService.findByUsername(username),HttpStatus.OK);
     }

@@ -41,7 +41,6 @@ public class FishCaptureController {
     }
 
     @GetMapping("/user/{username}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FishCaptureDto>> getFishCaptureByUsername(@PathVariable String username) {
         return new ResponseEntity<>(
                 fishCaptureService.getAllFishCapturesByUsername(username),
