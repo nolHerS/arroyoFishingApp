@@ -14,7 +14,7 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Run the application
-FROM eclipse-temurin:23-jre
+FROM eclipse-temurin:17-jre-alpine
 
 # Set the working directory
 WORKDIR /app
