@@ -71,10 +71,10 @@ public class FishCaptureServiceImpl implements FishCaptureService {
                 .toList();
     }
 
-    @Override
     @Transactional
     public FishCaptureDto updateFishCaptureDto(FishCaptureDto fishCaptureDto, Long requestingUserId, AuthUser authUser) {
-        FishCapture existingFishCapture = fishCaptureRepository.findById(requestingUserId)
+        // ⭐ CORREGIDO: Buscar por el ID de la captura, no del usuario
+        FishCapture existingFishCapture = fishCaptureRepository.findById(fishCaptureDto.id())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "FishCapture", "id", fishCaptureDto.id().toString()
                 ));

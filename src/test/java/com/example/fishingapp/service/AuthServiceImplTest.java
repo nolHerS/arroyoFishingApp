@@ -4,6 +4,7 @@ import com.example.fishingapp.dto.auth.AuthResponse;
 import com.example.fishingapp.dto.auth.LoginRequest;
 import com.example.fishingapp.dto.auth.RefreshTokenRequest;
 import com.example.fishingapp.dto.auth.RegisterRequest;
+import com.example.fishingapp.exception.EmailAlreadyExistsException;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
 import com.example.fishingapp.model.User;
@@ -83,7 +84,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void register_withExistingEmail_throwsUsernameAlreadyExistsException() {
+    void register_withExistingEmail_throwsEmailAlreadyExistsException() {
         // Crear usuario existente
         createTestUser("existing@example.com", "existinguser");
 
@@ -94,7 +95,7 @@ class AuthServiceImplTest {
                 .password("password123")
                 .build();
 
-        assertThrows(UsernameAlreadyExistsException.class, () ->
+        assertThrows(EmailAlreadyExistsException.class, () ->
                 authService.register(request)
         );
     }
@@ -122,7 +123,7 @@ class AuthServiceImplTest {
         createTestUser("user@example.com", "testuser", "password123");
 
         LoginRequest request = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
 
@@ -142,7 +143,7 @@ class AuthServiceImplTest {
     @Test
     void login_withInvalidEmail_throwsBadCredentialsException() {
         LoginRequest request = LoginRequest.builder()
-                .email("nonexistent@example.com")
+                .identifier("nonexistent@example.com")
                 .password("password123")
                 .build();
 
@@ -156,7 +157,7 @@ class AuthServiceImplTest {
         createTestUser("user@example.com", "testuser", "correctpassword");
 
         LoginRequest request = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("wrongpassword")
                 .build();
 
@@ -170,7 +171,7 @@ class AuthServiceImplTest {
         // Crear usuario y hacer login
         createTestUser("user@example.com", "testuser", "password123");
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
         AuthResponse loginResponse = authService.login(loginRequest);
@@ -202,7 +203,7 @@ class AuthServiceImplTest {
         // Crear usuario y obtener refresh token
         createTestUser("user@example.com", "testuser", "password123");
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
         AuthResponse loginResponse = authService.login(loginRequest);
@@ -249,7 +250,7 @@ class AuthServiceImplTest {
         // Crear usuario y hacer login
         createTestUser("user@example.com", "testuser", "password123");
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
         AuthResponse loginResponse = authService.login(loginRequest);
@@ -272,7 +273,7 @@ class AuthServiceImplTest {
         // Crear usuario y hacer múltiples logins
         createTestUser("user@example.com", "testuser", "password123");
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
 
@@ -314,7 +315,7 @@ class AuthServiceImplTest {
         // Crear usuario y hacer múltiples logins
         createTestUser("user@example.com", "testuser", "password123");
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("user@example.com")
+                .identifier("user@example.com")
                 .password("password123")
                 .build();
 
@@ -327,8 +328,8 @@ class AuthServiceImplTest {
     }
 
     // Método auxiliar para crear usuarios de prueba
-    private AuthUser createTestUser(String email, String username) {
-        return createTestUser(email, username, "password123");
+    private void createTestUser(String email, String username) {
+        createTestUser(email, username, "password123");
     }
 
     private AuthUser createTestUser(String email, String username, String password) {

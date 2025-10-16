@@ -7,6 +7,7 @@ import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
+import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.service.impl.FishCaptureServiceImpl;
 import com.example.fishingapp.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -318,13 +319,22 @@ class FishCaptureServiceImplTest {
     void updateFishCaptureDto_updatesCapture_whenExists() {
         Long captureId = 1L;
         Long userId = 1L;
+
+        // Crear el User
         User user = User.builder()
-                .id(1L)
+                .id(userId)
                 .username("ImaHer")
                 .fullName("Imanol Hernandez")
                 .email("imanol@prueba.com")
                 .build();
 
+        // Crear el AuthUser (necesario para el método)
+        AuthUser authUser = new AuthUser();
+        authUser.setId(1L);
+        authUser.setUser(user);
+        authUser.setEmail("imanol@prueba.com");
+
+        // Crear la captura existente
         FishCapture existingCapture = new FishCapture();
         existingCapture.setId(captureId);
         existingCapture.setCaptureDate(LocalDate.of(2025, 9, 25));
@@ -334,6 +344,7 @@ class FishCaptureServiceImplTest {
         existingCapture.setWeight(2.5f);
         existingCapture.setUser(user);
 
+        // DTO de entrada con los datos actualizados
         FishCaptureDto inputDto = new FishCaptureDto(
                 captureId,
                 user.getId(),
@@ -348,7 +359,8 @@ class FishCaptureServiceImplTest {
         when(fishCaptureRepository.findById(captureId)).thenReturn(java.util.Optional.of(existingCapture));
         when(fishCaptureRepository.save(any(FishCapture.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        FishCaptureDto result = fishCaptureService.updateFishCaptureDto(inputDto,userId);
+        // ⭐ AQUÍ ESTÁ EL CAMBIO: Ahora pasamos los 3 parámetros (inputDto, captureId, authUser)
+        FishCaptureDto result = fishCaptureService.updateFishCaptureDto(inputDto, captureId, authUser);
 
         // Comprobaciones
         assertThat(result, notNullValue());
@@ -376,12 +388,18 @@ class FishCaptureServiceImplTest {
                 LocalDateTime.of(2025, 9, 26, 11, 0)
         );
 
+        // Crear el AuthUser (necesario para el método)
+        AuthUser authUser = new AuthUser();
+        authUser.setId(1L);
+        authUser.setUser(null);
+        authUser.setEmail("imanol@prueba.com");
+
         // Mock del repositorio: no existe la captura
         when(fishCaptureRepository.findById(captureId)).thenReturn(java.util.Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> fishCaptureService.updateFishCaptureDto(inputDto,userId)
+                () -> fishCaptureService.updateFishCaptureDto(inputDto,userId, authUser)
         );
 
         assertThat(exception.getMessage(), containsString("FishCapture"));
@@ -451,17 +469,33 @@ class FishCaptureServiceImplTest {
     @Test
     void updateFishCaptureDto_throwsIllegalStateException_whenUserNotOwner() {
         Long captureId = 1L;
-        Long requestingUserId = 99L; // No es el dueño
-        Long ownerUserId = 1L;
+        Long requestingUserId = 99L; // ID del usuario que intenta editar (NO es el dueño)
+        Long ownerUserId = 1L; // ID del dueño real
 
+        // Usuario propietario de la captura
         User owner = User.builder()
                 .id(ownerUserId)
                 .username("Propietario")
+                .email("propietario@prueba.com")
                 .build();
 
+        // Usuario que intenta editar (NO es el dueño)
+        User requester = User.builder()
+                .id(requestingUserId)
+                .username("Intruso")
+                .email("intruso@prueba.com")
+                .build();
+
+        // ⭐ CORREGIDO: AuthUser debe ser del usuario que intenta editar (requester), NO del owner
+        AuthUser authUser = new AuthUser();
+        authUser.setId(requestingUserId);
+        authUser.setUser(requester); // El usuario que intenta editar
+        authUser.setEmail("intruso@prueba.com");
+
+        // Captura existente que pertenece al owner
         FishCapture existingCapture = new FishCapture();
         existingCapture.setId(captureId);
-        existingCapture.setUser(owner);
+        existingCapture.setUser(owner); // La captura pertenece al owner
 
         FishCaptureDto dto = new FishCaptureDto(
                 captureId,
@@ -473,12 +507,13 @@ class FishCaptureServiceImplTest {
                 LocalDateTime.now()
         );
 
-        // Mock: la captura existe pero pertenece a otro usuario
+        // Mock: la captura existe
         when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
 
+        // ⭐ Verificar que lanza la excepción
         IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
-                () -> fishCaptureService.updateFishCaptureDto(dto, requestingUserId)
+                () -> fishCaptureService.updateFishCaptureDto(dto, requestingUserId, authUser)
         );
 
         assertThat(exception.getMessage(), containsString("No tienes permiso"));
