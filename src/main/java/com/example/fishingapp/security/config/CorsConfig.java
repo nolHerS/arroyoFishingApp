@@ -19,34 +19,17 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Orígenes permitidos (tu frontend)
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-
-        // Métodos HTTP permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200",
+                "http://localhost:3000",
+                "https://arroyo-fishing-frontend-mwgaqdlku-nolherss-projects.vercel.app"
         ));
-
-        // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "X-Requested-With"
-        ));
-
-        // Headers expuestos (que el frontend puede leer)
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization"
-        ));
-
-        // Permitir credenciales (cookies, authorization headers)
+        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","Accept","X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
-
-        // Tiempo de cache de la configuración CORS (en segundos)
         configuration.setMaxAge(3600L);
 
-        // Aplicar configuración a todas las rutas
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
