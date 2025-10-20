@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "fish_captures")
@@ -13,8 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = "images") // Evitar carga innecesaria en toString
+@EqualsAndHashCode(exclude = "images")
 public class FishCapture {
 
     @Id
@@ -40,4 +42,20 @@ public class FishCapture {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // NUEVA RELACIÓN CON IMÁGENES
+    @OneToMany(mappedBy = "fishCapture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CaptureImage> images = new ArrayList<>();
+
+    // Método helper para añadir imágenes manteniendo la bidireccionalidad
+    public void addImage(CaptureImage image) {
+        images.add(image);
+        image.setFishCapture(this);
+    }
+
+    // Método helper para eliminar imágenes
+    public void removeImage(CaptureImage image) {
+        images.remove(image);
+        image.setFishCapture(null);
+    }
 }
