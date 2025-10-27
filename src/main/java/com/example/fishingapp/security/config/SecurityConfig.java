@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -45,17 +44,24 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints públicos (sin autenticación)
                         .requestMatchers(
-                                "/api/auth/**",           // Registro, login, refresh
-                                "/api/public/**",         // Endpoints públicos
-                                "/v3/api-docs/**",        // Swagger
-                                "/swagger-ui/**",         // Swagger UI
-                                "/swagger-ui.html"        // Swagger UI
+                                "/api/auth/**",
+                                "/api/public/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
 
                         // Permitir GET en fish-captures (para mostrar capturas públicamente)
                         .requestMatchers(HttpMethod.GET, "/api/fish-captures", "/api/fish-captures/**").permitAll()
 
-                        // Permitir GET en users (para mostrar nombres de usuarios en las capturas)
+                        // Permitir GET en imágenes (para ver imágenes públicamente)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/captures/*/images",           // Ver imágenes de una captura
+                                "/api/captures/images/*",           // Ver una imagen específica
+                                "/api/captures/*/images/count"      // Contar imágenes
+                        ).permitAll()
+
+                        // Permitir GET en users
                         .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**").permitAll()
 
                         // Endpoints de administrador
