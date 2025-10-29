@@ -1,4 +1,4 @@
-package com.example.fishingapp.service.impl;
+package com.example.fishingapp.service;
 
 import com.example.fishingapp.dto.auth.AuthResponse;
 import com.example.fishingapp.dto.auth.LoginRequest;
@@ -14,6 +14,7 @@ import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.RefreshToken;
 import com.example.fishingapp.security.Role;
+import com.example.fishingapp.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -33,7 +33,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CaptureImageSericeImpl implements CaptureImageService {
+public class CaptureImageServiceImpl implements CaptureImageService {
 
     private final ImageProcessingService imageProcessingService;
     private final StorageService storageService;
