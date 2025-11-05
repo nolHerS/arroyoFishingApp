@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Configuración local (NO subir a Git)
+src/main/resources/application-local.properties
+
+# Variables de entorno locales
+.env
+.env.local
+
+# Archivos de configuración sensibles
+application-local.yml
