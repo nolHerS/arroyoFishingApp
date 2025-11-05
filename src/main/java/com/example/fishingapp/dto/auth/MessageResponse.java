@@ -15,9 +15,4 @@ public class MessageResponse {
 
     @Builder.Default
     private Boolean success = true;
-
-    public MessageResponse(String message) {
-        this.message = message;
-        this.success = true;
-    }
 }

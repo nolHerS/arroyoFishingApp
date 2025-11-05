@@ -2,7 +2,6 @@ package com.example.fishingapp.service;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
-import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
@@ -15,12 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -76,7 +73,8 @@ class FishCaptureServiceImplTest {
                 "Trucha",
                 "Rio Tajo",
                 2.5F,
-                user
+                user,
+                Collections.emptyList()
         );
         when(fishCaptureRepository.save(any(FishCapture.class))).thenReturn(savedCapture);
 
@@ -139,7 +137,8 @@ class FishCaptureServiceImplTest {
                 "Trucha",
                 "Rio Tajo",
                 2.5F,
-                user
+                user,
+                Collections.emptyList()
         );
 
         when(fishCaptureRepository.findById(captureId)).thenReturn(java.util.Optional.of(capture));
