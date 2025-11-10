@@ -70,7 +70,7 @@ public class FishCaptureController {
 
     @DeleteMapping("/{idFishCapture}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> deleteFishCapture(
+    public ResponseEntity<FishCaptureDto> deleteFishCapture(
             @PathVariable Long idFishCapture,
             @AuthenticationPrincipal AuthUser authUser) {
 
@@ -79,7 +79,7 @@ public class FishCaptureController {
         // Pasar el userId para validación
         fishCaptureService.deleteFishCaptureDto(idFishCapture, userId);
         return new ResponseEntity<>(
-                "Captura borrada: " + fishCaptureDto.toString(),
+                fishCaptureDto,
                 HttpStatus.OK
         );
     }
