@@ -66,6 +66,7 @@ public interface CaptureImageService {
      */
     void deleteAllImagesByCapture(Long captureId, Long userId);
 
+    void deleteAllImagesByCaptureInternal(Long captureId);
     /**
      * Verifica si un usuario puede modificar las imágenes de una captura
      *

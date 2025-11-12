@@ -236,6 +236,46 @@ public class CaptureImageServiceImpl implements CaptureImageService {
         return canModify;
     }
 
+    /**
+     * Elimina todas las imágenes de una captura SIN validar userId
+     * Se usa internamente cuando se elimina una captura (cascada)
+     */
+    @Override
+    @Transactional
+    public void deleteAllImagesByCaptureInternal(Long captureId) {
+        log.info("🗑️ Eliminando todas las imágenes de captura {} (cascada interna)", captureId);
+
+        List<CaptureImage> images = captureImageRepository.findByFishCaptureId(captureId);
+
+        if (images.isEmpty()) {
+            log.info("ℹ️ No hay imágenes para eliminar en captura {}", captureId);
+            return;
+        }
+
+        // Eliminar cada imagen de S3
+        for (CaptureImage image : images) {
+            try {
+                // Eliminar imagen original
+                storageService.deleteFile(image.getS3Key());
+                log.debug("✅ Imagen original eliminada de S3: {}", image.getS3Key());
+
+                // Eliminar thumbnail
+                String thumbnailKey = extractS3KeyFromUrl(image.getThumbnailUrl());
+                storageService.deleteFile(thumbnailKey);
+                log.debug("✅ Thumbnail eliminado de S3: {}", thumbnailKey);
+
+            } catch (Exception e) {
+                log.error("⚠️ Error al eliminar imagen {} de S3: {}", image.getId(), e.getMessage());
+                // Continuar con las demás aunque falle una
+            }
+        }
+
+        // Eliminar de BD
+        captureImageRepository.deleteByFishCaptureId(captureId);
+
+        log.info("✅ Eliminadas {} imágenes de captura {}", images.size(), captureId);
+    }
+
 
     @Override
     public int countImagesByCapture(Long captureId) {
@@ -258,69 +298,107 @@ public class CaptureImageServiceImpl implements CaptureImageService {
         return capture;
     }
 
-    /**
-     * Procesa una imagen (optimiza, crea thumbnail) y la sube a S3 y BD
-     */
     private CaptureImage processAndUploadImage(MultipartFile file, FishCapture capture, Long userId) {
-        // 1. Detectar tipo MIME y formato
-        ByteArrayInputStream reusableStream = imageProcessingService.convertToReusableStream(file);
-        String mimeType = imageProcessingService.detectMimeType(reusableStream);
-        String outputFormat = imageProcessingService.getOutputFormat(mimeType);
+        log.info("╔════════════════════════════════════════════════════════╗");
+        log.info("║  PROCESANDO Y SUBIENDO IMAGEN                         ║");
+        log.info("╚════════════════════════════════════════════════════════╝");
+        log.info("Archivo original: {}", file.getOriginalFilename());
+        log.info("Tamaño: {} bytes", file.getSize());
+        log.info("Content Type: {}", file.getContentType());
+        log.info("Captura ID: {}", capture.getId());
+        log.info("Usuario ID: {}", userId);
 
-        // 2. Obtener dimensiones originales
-        reusableStream.reset();
-        int[] dimensions = imageProcessingService.getImageDimensions(reusableStream);
+        try {
+            // 1. Detectar tipo MIME y formato
+            log.info("📋 Paso 1: Detectando tipo MIME...");
+            ByteArrayInputStream reusableStream = imageProcessingService.convertToReusableStream(file);
+            String mimeType = imageProcessingService.detectMimeType(reusableStream);
+            String outputFormat = imageProcessingService.getOutputFormat(mimeType);
+            log.info("  ✓ MIME type: {}", mimeType);
+            log.info("  ✓ Output format: {}", outputFormat);
 
-        // 3. Optimizar imagen original
-        reusableStream.reset();
-        ByteArrayInputStream optimizedImage = imageProcessingService.optimizeImage(
-                reusableStream, outputFormat, 1920);
+            // 2. Obtener dimensiones originales
+            log.info("📐 Paso 2: Obteniendo dimensiones...");
+            reusableStream.reset();
+            int[] dimensions = imageProcessingService.getImageDimensions(reusableStream);
+            log.info("  ✓ Dimensiones: {}x{}", dimensions[0], dimensions[1]);
 
-        // 4. Crear thumbnail
-        reusableStream.reset();
-        ByteArrayInputStream thumbnail = imageProcessingService.createThumbnail(
-                reusableStream, outputFormat);
+            // 3. Optimizar imagen original
+            log.info("🔧 Paso 3: Optimizando imagen...");
+            reusableStream.reset();
+            ByteArrayInputStream optimizedImage = imageProcessingService.optimizeImage(
+                    reusableStream, outputFormat, 1920);
+            log.info("  ✓ Imagen optimizada. Tamaño: {} bytes", optimizedImage.available());
 
-        // 5. Generar nombres de archivo únicos
-        String originalFileName = file.getOriginalFilename();
-        String sanitizedFileName = sanitizeFileName(originalFileName);
+            // 4. Crear thumbnail
+            log.info("🖼️ Paso 4: Creando thumbnail...");
+            reusableStream.reset();
+            ByteArrayInputStream thumbnail = imageProcessingService.createThumbnail(
+                    reusableStream, outputFormat);
+            log.info("  ✓ Thumbnail creado. Tamaño: {} bytes", thumbnail.available());
 
-        // 6. Construir keys para S3
-        String originalKey = storageService.buildFileKey(userId, capture.getId(), sanitizedFileName);
-        String thumbnailKey = s3StorageService.buildThumbnailKey(userId, capture.getId(), sanitizedFileName);
+            // 5. Generar nombres de archivo únicos
+            log.info("📝 Paso 5: Generando nombres de archivo...");
+            String originalFileName = file.getOriginalFilename();
+            String sanitizedFileName = sanitizeFileName(originalFileName);
+            log.info("  ✓ Nombre sanitizado: {}", sanitizedFileName);
 
-        // 7. Subir imagen original a S3
-        String originalUrl = storageService.uploadFile(
-                originalKey,
-                optimizedImage,
-                optimizedImage.available(),
-                mimeType);
+            // 6. Construir keys para S3
+            log.info("🔑 Paso 6: Construyendo keys para S3...");
+            String originalKey = storageService.buildFileKey(userId, capture.getId(), sanitizedFileName);
+            String thumbnailKey = s3StorageService.buildThumbnailKey(userId, capture.getId(), sanitizedFileName);
+            log.info("  ✓ Key original: {}", originalKey);
+            log.info("  ✓ Key thumbnail: {}", thumbnailKey);
 
-        // 8. Subir thumbnail a S3
-        String thumbnailUrl = storageService.uploadFile(
-                thumbnailKey,
-                thumbnail,
-                thumbnail.available(),
-                mimeType);
+            // 7. Subir imagen original a S3
+            log.info("☁️ Paso 7: Subiendo imagen original a S3...");
+            String originalUrl = storageService.uploadFile(
+                    originalKey,
+                    optimizedImage,
+                    optimizedImage.available(),
+                    mimeType);
+            log.info("  ✅ URL imagen original: {}", originalUrl);
 
-        // 9. Crear entidad y guardar en BD
-        CaptureImage captureImage = CaptureImage.builder()
-                .originalUrl(originalUrl)
-                .thumbnailUrl(thumbnailUrl)
-                .fileName(sanitizedFileName)
-                .fileSize(file.getSize())
-                .mimeType(mimeType)
-                .width(dimensions[0])
-                .height(dimensions[1])
-                .s3Key(originalKey)
-                .fishCapture(capture)
-                .build();
+            // 8. Subir thumbnail a S3
+            log.info("☁️ Paso 8: Subiendo thumbnail a S3...");
+            String thumbnailUrl = storageService.uploadFile(
+                    thumbnailKey,
+                    thumbnail,
+                    thumbnail.available(),
+                    mimeType);
+            log.info("  ✅ URL thumbnail: {}", thumbnailUrl);
 
-        CaptureImage savedImage = captureImageRepository.save(captureImage);
-        log.info("Imagen guardada en BD con ID: {}", savedImage.getId());
+            // 9. Crear entidad y guardar en BD
+            log.info("💾 Paso 9: Guardando en base de datos...");
+            CaptureImage captureImage = CaptureImage.builder()
+                    .originalUrl(originalUrl)
+                    .thumbnailUrl(thumbnailUrl)
+                    .fileName(sanitizedFileName)
+                    .fileSize(file.getSize())
+                    .mimeType(mimeType)
+                    .width(dimensions[0])
+                    .height(dimensions[1])
+                    .s3Key(originalKey)
+                    .fishCapture(capture)
+                    .build();
 
-        return savedImage;
+            CaptureImage savedImage = captureImageRepository.save(captureImage);
+            log.info("  ✅ Imagen guardada con ID: {}", savedImage.getId());
 
+            log.info("╔════════════════════════════════════════════════════════╗");
+            log.info("║  ✅ PROCESO COMPLETADO EXITOSAMENTE                    ║");
+            log.info("╚════════════════════════════════════════════════════════╝");
+
+            return savedImage;
+
+        } catch (Exception e) {
+            log.error("╔════════════════════════════════════════════════════════╗");
+            log.error("║  ❌ ERROR EN EL PROCESO                                ║");
+            log.error("╚════════════════════════════════════════════════════════╝");
+            log.error("Error en paso: {}", e.getMessage());
+            log.error("Stack trace completo:", e);
+            throw new RuntimeException("Error procesando imagen: " + e.getMessage(), e);
+        }
     }
 
     /**

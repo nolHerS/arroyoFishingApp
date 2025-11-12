@@ -2,30 +2,38 @@ package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
+import com.example.fishingapp.exception.UnauthorizedException;
 import com.example.fishingapp.mapper.FishCaptureMapper;
 import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
+import com.example.fishingapp.repository.CaptureImageRepository;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.security.AuthUser;
+import com.example.fishingapp.service.CaptureImageService;
 import com.example.fishingapp.service.FishCaptureService;
 import com.example.fishingapp.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Slf4j
 public class FishCaptureServiceImpl implements FishCaptureService {
 
     private final FishCaptureRepository fishCaptureRepository;
 
     private final UserRepository userRepository;
 
-    public FishCaptureServiceImpl(FishCaptureRepository fishCaptureRepository, UserRepository userRepository) {
+    private final CaptureImageService captureImageService;
+
+    public FishCaptureServiceImpl(FishCaptureRepository fishCaptureRepository, UserRepository userRepository, CaptureImageService captureImageService) {
         this.fishCaptureRepository = fishCaptureRepository;
         this.userRepository = userRepository;
+        this.captureImageService = captureImageService;
     }
 
     @Override
@@ -92,17 +100,41 @@ public class FishCaptureServiceImpl implements FishCaptureService {
         return FishCaptureMapper.mapFishCaptureDto(fishCaptureRepository.save(existingFishCapture));
     }
 
-    @Override
     @Transactional
-    public void deleteFishCaptureDto(Long fishCaptureId, Long requestingUserId) {
-        FishCapture fishCapture = fishCaptureRepository.findById(fishCaptureId)
-                .orElseThrow(() -> new ResourceNotFoundException("FishCapture", "id", fishCaptureId.toString()));
+    public void deleteFishCaptureDto(Long idFishCapture, Long userId) {
+        log.info("🗑️ Iniciando eliminación de captura {} por usuario {}", idFishCapture, userId);
 
-        // Validar que el usuario sea el dueño
-        if (!fishCapture.getUser().getId().equals(requestingUserId)) {
-            throw new IllegalStateException("No tienes permiso para eliminar esta captura");
+        // 1. Verificar que existe
+        FishCapture fishCapture = fishCaptureRepository.findById(idFishCapture)
+                .orElseThrow(() -> {
+                    log.error("❌ Captura no encontrada con ID: {}", idFishCapture);
+                    return new ResourceNotFoundException("Captura no encontrada con ID: " + idFishCapture);
+                });
+
+        log.info("✅ Captura encontrada: {}", fishCapture.getFishType());
+
+        // 2. Verificar permisos
+        if (!fishCapture.getUser().getId().equals(userId)) {
+            log.error("❌ Usuario {} no tiene permisos para eliminar captura {}", userId, idFishCapture);
+            throw new UnauthorizedException("No tienes permisos para eliminar esta captura");
         }
 
-        fishCaptureRepository.deleteById(fishCaptureId);
+        log.info("✅ Permisos verificados");
+
+        // 3. Eliminar imágenes de Tebi y BD (SIN validar userId nuevamente)
+        try {
+            captureImageService.deleteAllImagesByCaptureInternal(idFishCapture);
+            log.info("✅ Imágenes eliminadas correctamente");
+        } catch (Exception e) {
+            log.error("⚠️ Error eliminando imágenes: {}", e.getMessage(), e);
+            // Decidir si continuar o lanzar excepción
+            // throw new RuntimeException("Error al eliminar imágenes", e);
+        }
+
+        // 4. Eliminar la captura de la BD
+        fishCaptureRepository.delete(fishCapture);
+        fishCaptureRepository.flush(); // Forzar ejecución inmediata
+
+        log.info("✅ Captura {} eliminada exitosamente", idFishCapture);
     }
 }
