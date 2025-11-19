@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,38 +25,31 @@ import static org.hamcrest.Matchers.*;
  * Verifica las operaciones de base de datos con H2 en memoria
  */
 @DataJpaTest
+@ActiveProfiles("test")
+@DisplayName("CaptureImageRepository - Tests de Integración")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DisplayName("CaptureImageRepository - Tests de Integracion")
 class CaptureImageRepositoryTest {
 
     @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
     private CaptureImageRepository captureImageRepository;
-
-    @Autowired
-    private FishCaptureRepository fishCaptureRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     private User testUser;
     private FishCapture testCapture;
 
     @BeforeEach
     void setUp() {
-        // Limpiar datos
-        captureImageRepository.deleteAll();
-        fishCaptureRepository.deleteAll();
-        userRepository.deleteAll();
-
-        // Crear usuario de prueba
+        // Crear usuario de prueba usando persistAndFlush
         testUser = User.builder()
                 .username("testuser")
                 .fullName("Test User")
                 .email("test@example.com")
                 .build();
-        testUser = userRepository.save(testUser);
+        testUser = entityManager.persistAndFlush(testUser);
 
-        // Crear captura de prueba
+        // Crear captura de prueba usando persistAndFlush
         testCapture = FishCapture.builder()
                 .captureDate(LocalDate.now())
                 .createdAt(LocalDateTime.now())
@@ -63,7 +58,10 @@ class CaptureImageRepositoryTest {
                 .weight(2.5f)
                 .user(testUser)
                 .build();
-        testCapture = fishCaptureRepository.save(testCapture);
+        testCapture = entityManager.persistAndFlush(testCapture);
+
+        // Clear para asegurar que las siguientes consultas vengan de la BD
+        entityManager.clear();
     }
 
     @Test
@@ -84,14 +82,14 @@ class CaptureImageRepositoryTest {
                 .build();
 
         // When
-        CaptureImage savedImage = captureImageRepository.save(image);
+        CaptureImage savedImage = captureImageRepository.saveAndFlush(image);
 
         // Then
         assertThat(savedImage, notNullValue());
         assertThat(savedImage.getId(), notNullValue());
         assertThat(savedImage.getFileName(), is("test.jpg"));
         assertThat(savedImage.getMimeType(), is("image/jpeg"));
-        assertThat(savedImage.getFishCapture(), is(testCapture));
+        assertThat(savedImage.getFishCapture().getId(), is(testCapture.getId()));
     }
 
     @Test
@@ -102,12 +100,15 @@ class CaptureImageRepositoryTest {
         CaptureImage image2 = createAndSaveImage("image2.jpg", testCapture);
         CaptureImage image3 = createAndSaveImage("image3.jpg", testCapture);
 
+        entityManager.clear();
+
         // When
         List<CaptureImage> images = captureImageRepository.findByFishCaptureId(testCapture.getId());
 
         // Then
         assertThat(images, hasSize(3));
-        assertThat(images, containsInAnyOrder(image1, image2, image3));
+        assertThat(images.stream().map(CaptureImage::getId).toList(),
+                containsInAnyOrder(image1.getId(), image2.getId(), image3.getId()));
     }
 
     @Test
@@ -121,10 +122,26 @@ class CaptureImageRepositoryTest {
     }
 
     @Test
+    @DisplayName("Debe contar imágenes por captura")
+    void testCountByFishCaptureId() {
+        // Given
+        createAndSaveImage("image1.jpg", testCapture);
+        createAndSaveImage("image2.jpg", testCapture);
+        createAndSaveImage("image3.jpg", testCapture);
+
+        // When
+        long count = captureImageRepository.countByFishCaptureId(testCapture.getId());
+
+        // Then
+        assertThat(count, is(3L));
+    }
+
+    @Test
     @DisplayName("Debe encontrar imagen por ID")
     void testFindById() {
         // Given
         CaptureImage image = createAndSaveImage("test.jpg", testCapture);
+        entityManager.clear();
 
         // When
         Optional<CaptureImage> foundImage = captureImageRepository.findById(image.getId());
@@ -154,6 +171,7 @@ class CaptureImageRepositoryTest {
 
         // When
         captureImageRepository.delete(image);
+        captureImageRepository.flush();
 
         // Then
         Optional<CaptureImage> deletedImage = captureImageRepository.findById(imageId);
@@ -170,6 +188,7 @@ class CaptureImageRepositoryTest {
 
         // When
         captureImageRepository.deleteByFishCaptureId(testCapture.getId());
+        captureImageRepository.flush();
 
         // Then
         List<CaptureImage> remainingImages = captureImageRepository.findByFishCaptureId(testCapture.getId());
@@ -191,24 +210,6 @@ class CaptureImageRepositoryTest {
     }
 
     @Test
-    @DisplayName("Las imágenes persisten aunque se elimine la captura (sin cascade)")
-    void testNoCascadeOnCaptureDelete() {
-        // Given
-        createAndSaveImage("image1.jpg", testCapture);
-        createAndSaveImage("image2.jpg", testCapture);
-
-        long initialCount = captureImageRepository.count();
-        assertThat(initialCount, is(2L));
-
-        // When - Intentar eliminar la captura fallaría por constraint de FK
-        // En tu aplicación, primero debes eliminar las imágenes manualmente
-
-        // Para este test, verificamos que las imágenes existen
-        List<CaptureImage> images = captureImageRepository.findByFishCaptureId(testCapture.getId());
-        assertThat(images, hasSize(2));
-    }
-
-    @Test
     @DisplayName("Debe persistir correctamente las fechas de subida")
     void testUploadedAtPersistence() {
         // Given
@@ -227,11 +228,10 @@ class CaptureImageRepositoryTest {
                 .build();
 
         // When
-        CaptureImage savedImage = captureImageRepository.save(image);
+        CaptureImage savedImage = captureImageRepository.saveAndFlush(image);
 
         // Then
         assertThat(savedImage.getUploadedAt(), notNullValue());
-        // Verificar que la fecha está dentro de un margen razonable (1 segundo)
         assertThat(savedImage.getUploadedAt().toLocalDate(), is(now.toLocalDate()));
     }
 
@@ -247,7 +247,7 @@ class CaptureImageRepositoryTest {
                 .weight(3.0f)
                 .user(testUser)
                 .build();
-        capture2 = fishCaptureRepository.save(capture2);
+        capture2 = entityManager.persistAndFlush(capture2);
 
         createAndSaveImage("capture1_image1.jpg", testCapture);
         createAndSaveImage("capture1_image2.jpg", testCapture);
@@ -281,6 +281,6 @@ class CaptureImageRepositoryTest {
                 .uploadedAt(LocalDateTime.now())
                 .build();
 
-        return captureImageRepository.save(image);
+        return entityManager.persistAndFlush(image);
     }
 }

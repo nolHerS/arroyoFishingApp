@@ -1,4 +1,4 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.image.ImageDeleteResponseDto;
 import com.example.fishingapp.dto.image.ImageResponseDto;
@@ -12,8 +12,9 @@ import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.CaptureImageRepository;
 import com.example.fishingapp.repository.FishCaptureRepository;
-import com.example.fishingapp.service.impl.CaptureImageServiceImpl;
-import com.example.fishingapp.service.impl.S3StorageServiceImpl;
+import com.example.fishingapp.service.ImageProcessingService;
+import com.example.fishingapp.service.StorageService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class CaptureImageServiceImplTest {
     private ImageMapper imageMapper;
 
     @Mock
-    private S3StorageServiceImpl s3StorageService;
+    private CloudinaryStorageServiceImpl s3StorageService;
 
     @InjectMocks
     private CaptureImageServiceImpl captureImageService;
@@ -138,7 +139,7 @@ class CaptureImageServiceImplTest {
 
         // Verificar interacciones clave
         verify(fishCaptureRepository).findById(1L);
-        verify(captureImageRepository).findByFishCaptureId(1L);
+        verify(captureImageRepository).countByFishCaptureId(1L);
         verify(imageProcessingService).validateImage(validImageFile);
         verify(captureImageRepository).save(any(CaptureImage.class));
 
@@ -185,26 +186,30 @@ class CaptureImageServiceImplTest {
     @Test
     @DisplayName("Debe lanzar InvalidImageException cuando se excede el límite de imágenes")
     void testUploadImage_ThrowsInvalidImageException_WhenLimitExceeded() {
-        // Given
+        // Given: La captura existe
         when(fishCaptureRepository.findById(1L)).thenReturn(Optional.of(testCapture));
 
-        // Simular 5 imágenes existentes (el límite)
-        List<CaptureImage> existingImages = List.of(
-                new CaptureImage(), new CaptureImage(), new CaptureImage(),
-                new CaptureImage(), new CaptureImage()
-        );
-        when(captureImageRepository.findByFishCaptureId(1L)).thenReturn(existingImages);
+        // Simular límite de imágenes alcanzado: countByFishCaptureId devuelve 5
+        when(captureImageRepository.countByFishCaptureId(1L)).thenReturn(5L);
 
-        // When & Then
+        // When & Then: la excepción se lanza antes de procesar la imagen
         InvalidImageException exception = assertThrows(
                 InvalidImageException.class,
                 () -> captureImageService.uploadImage(1L, 1L, validImageFile)
         );
 
+        // Verificar mensaje
         assertThat(exception.getMessage(), containsString("límite máximo"));
         assertThat(exception.getMessage(), containsString("5"));
+
+        // Verificar que no se intenta guardar ninguna imagen
         verify(captureImageRepository, never()).save(any());
+
+        // Evitar que Mockito se queje por stubbings no usados
+        verify(fishCaptureRepository).findById(1L);
+        verify(captureImageRepository).countByFishCaptureId(1L);
     }
+
 
     // ==================== TESTS DE SUBIDA MÚLTIPLE ====================
 
@@ -300,29 +305,41 @@ class CaptureImageServiceImplTest {
     @Test
     @DisplayName("Debe lanzar InvalidImageException cuando múltiples imágenes exceden el límite")
     void testUploadMultipleImages_ThrowsInvalidImageException_WhenLimitExceeded() {
-        // Given
+        // Given: crear 4 archivos a subir
         MockMultipartFile[] files = new MockMultipartFile[4];
         for (int i = 0; i < 4; i++) {
-            files[i] = new MockMultipartFile("file" + i, "test" + i + ".jpg", "image/jpeg", "content".getBytes());
+            files[i] = new MockMultipartFile(
+                    "file" + i,
+                    "test" + i + ".jpg",
+                    "image/jpeg",
+                    "content".getBytes()
+            );
         }
 
+        // La captura existe
         when(fishCaptureRepository.findById(1L)).thenReturn(Optional.of(testCapture));
 
-        // Ya hay 3 imágenes, intentar subir 4 más excedería el límite de 5
-        List<CaptureImage> existingImages = List.of(
-                new CaptureImage(), new CaptureImage(), new CaptureImage()
-        );
-        when(captureImageRepository.findByFishCaptureId(1L)).thenReturn(existingImages);
+        // Simular 3 imágenes existentes, límite máximo 5
+        when(captureImageRepository.countByFishCaptureId(1L)).thenReturn(3L);
 
-        // When & Then
+        // When & Then: se lanza InvalidImageException antes de procesar cualquier imagen
         InvalidImageException exception = assertThrows(
                 InvalidImageException.class,
                 () -> captureImageService.uploadMultipleImages(1L, 1L, files)
         );
 
+        // Verificar mensaje
         assertThat(exception.getMessage(), containsString("No se pueden subir 4 imágenes"));
         assertThat(exception.getMessage(), containsString("Límite: 5, actuales: 3"));
+
+        // No se debe intentar guardar ninguna imagen
+        verify(captureImageRepository, never()).save(any());
+
+        // Verificar interacciones clave
+        verify(fishCaptureRepository).findById(1L);
+        verify(captureImageRepository).countByFishCaptureId(1L);
     }
+
 
     // ==================== TESTS DE OBTENCIÓN DE IMÁGENES ====================
 

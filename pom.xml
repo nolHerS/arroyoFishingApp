@@ -103,12 +103,16 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         -->
-
-        <!-- AWS SDK v2 para S3 (compatible con Tebi) -->
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>2.38.3</version>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.38.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-taglib</artifactId>
+            <version>1.38.0</version>
         </dependency>
 
         <!-- Para procesar y redimensionar imágenes -->

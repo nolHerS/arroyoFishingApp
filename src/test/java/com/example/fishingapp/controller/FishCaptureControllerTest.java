@@ -4,6 +4,7 @@ import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.AuthUserRepository;
 import com.example.fishingapp.repository.FishCaptureRepository;
+import com.example.fishingapp.repository.RefreshTokenRepository;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.Role;
@@ -47,11 +48,15 @@ class FishCaptureControllerTest {
     @Autowired
     private FishCaptureRepository fishCaptureRepository;
 
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
     private User testUser;
 
     @BeforeEach
     void setUp() {
         fishCaptureRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
         authUserRepository.deleteAll();
         userRepository.deleteAll();
 

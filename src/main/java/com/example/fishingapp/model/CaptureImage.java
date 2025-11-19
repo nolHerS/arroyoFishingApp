@@ -48,7 +48,7 @@ public class CaptureImage {
     private String s3Key; // Ruta en el bucket
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "capture_id", nullable = false)
+    @JoinColumn(name = "fish_capture_id", nullable = false)
     private FishCapture fishCapture;
 
     @PrePersist

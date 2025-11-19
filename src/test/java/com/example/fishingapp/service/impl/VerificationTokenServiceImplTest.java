@@ -1,5 +1,6 @@
 package com.example.fishingapp.service;
 
+import com.example.fishingapp.config.BaseIntegrationTest;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.AuthUserRepository;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestPropertySource(properties = {
         "verification.token.expiration=86400"
 })
-public class VerificationTokenServiceImplTest {
+public class VerificationTokenServiceImplTest extends BaseIntegrationTest {
 
     @Autowired
     private VerificationTokenServiceImpl verificationTokenService;

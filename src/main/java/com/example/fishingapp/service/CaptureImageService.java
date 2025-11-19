@@ -83,4 +83,5 @@ public interface CaptureImageService {
      * @return Número de imágenes
      */
     int countImagesByCapture(Long captureId);
+
 }

@@ -41,7 +41,7 @@ public class CaptureImageServiceImpl implements CaptureImageService {
     private final ImageMapper imageMapper;
 
     // Necesitamos acceder a métodos específicos de S3StorageServiceImpl
-    private final S3StorageServiceImpl s3StorageService;
+    private final CloudinaryStorageServiceImpl cloudinaryStorageService;
 
     @Value("${app.image.max-images-per-capture}")
     private int maxImagesPerCapture;
@@ -55,7 +55,12 @@ public class CaptureImageServiceImpl implements CaptureImageService {
         FishCapture capture = validateCaptureOwnership(captureId, userId);
 
         // 2. Verificar límite de imágenes
-        int currentImageCount = captureImageRepository.findByFishCaptureId(captureId).size();
+        long currentImageCount = captureImageRepository.countByFishCaptureId(captureId);
+
+        log.info("🔍 DEBUG: currentImageCount={}, maxImagesPerCapture={}, condition={}",
+                currentImageCount, maxImagesPerCapture, (currentImageCount >= maxImagesPerCapture));
+
+
         if (currentImageCount >= maxImagesPerCapture) {
             throw new InvalidImageException(
                     String.format("Se ha alcanzado el límite máximo de %d imágenes por captura",
@@ -82,7 +87,7 @@ public class CaptureImageServiceImpl implements CaptureImageService {
         FishCapture capture = validateCaptureOwnership(captureId, userId);
 
         // 2. Verificar límite de imágenes
-        int currentImageCount = captureImageRepository.findByFishCaptureId(captureId).size();
+        long currentImageCount = captureImageRepository.countByFishCaptureId(captureId);
         int newImageCount = files.length;
 
         if (currentImageCount + newImageCount > maxImagesPerCapture) {
@@ -346,7 +351,7 @@ public class CaptureImageServiceImpl implements CaptureImageService {
             // 6. Construir keys para S3
             log.info("🔑 Paso 6: Construyendo keys para S3...");
             String originalKey = storageService.buildFileKey(userId, capture.getId(), sanitizedFileName);
-            String thumbnailKey = s3StorageService.buildThumbnailKey(userId, capture.getId(), sanitizedFileName);
+            String thumbnailKey = cloudinaryStorageService.buildThumbnailKey(userId, capture.getId(), sanitizedFileName);
             log.info("  ✓ Key original: {}", originalKey);
             log.info("  ✓ Key thumbnail: {}", thumbnailKey);
 

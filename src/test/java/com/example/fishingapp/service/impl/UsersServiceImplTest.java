@@ -1,4 +1,4 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
@@ -6,13 +6,11 @@ import com.example.fishingapp.exception.UsernameAlreadyExistsException;
 import com.example.fishingapp.mapper.UserMapper;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.UserRepository;
-import com.example.fishingapp.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
