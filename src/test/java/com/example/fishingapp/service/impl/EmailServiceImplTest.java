@@ -1,6 +1,5 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
-import com.example.fishingapp.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

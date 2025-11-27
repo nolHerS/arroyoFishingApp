@@ -1,4 +1,4 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.config.BaseIntegrationTest;
 import com.example.fishingapp.exception.ResourceNotFoundException;
@@ -9,7 +9,6 @@ import com.example.fishingapp.repository.VerificationTokenRepository;
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.Role;
 import com.example.fishingapp.security.VerificationToken;
-import com.example.fishingapp.service.impl.VerificationTokenServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

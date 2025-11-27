@@ -14,11 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthUserTest {
 
     private AuthUser authUser;
-    private User user;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
+        User user = User.builder()
                 .id(1L)
                 .username("userprofile")
                 .email("profile@example.com")

@@ -1,6 +1,6 @@
 package com.example.fishingapp.integration;
 
-import com.example.fishingapp.config.NoSecurityTestConfig;
+
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.model.User;
@@ -11,9 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.MatcherAssert.assertThat;

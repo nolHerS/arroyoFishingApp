@@ -1,8 +1,7 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.Role;
-import com.example.fishingapp.service.impl.JwtService;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
