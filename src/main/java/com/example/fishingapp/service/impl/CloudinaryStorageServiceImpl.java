@@ -21,6 +21,8 @@ import java.util.Map;
 @Slf4j
 public class CloudinaryStorageServiceImpl implements StorageService {
 
+    public static final String IMAGE = "image";
+    public static final String RESOURCE_TYPE = "resource_type";
     private final Cloudinary cloudinary;
 
     private static final String FOLDER_CAPTURES = "fish-captures/captures";
@@ -48,7 +50,7 @@ public class CloudinaryStorageServiceImpl implements StorageService {
                     ObjectUtils.asMap(
                             "folder", folder,
                             "public_id", publicId,
-                            "resource_type", "image",
+                            RESOURCE_TYPE, IMAGE,
                             "overwrite", true,
                             "quality", "auto:good", // Optimización automática
                             "fetch_format", "auto"   // Formato automático (WebP cuando sea posible)
@@ -85,7 +87,7 @@ public class CloudinaryStorageServiceImpl implements StorageService {
             log.info("🆔 Public ID completo: {}", publicId);
 
             Map result = cloudinary.uploader().destroy(publicId,
-                    ObjectUtils.asMap("resource_type", "image")
+                    ObjectUtils.asMap(RESOURCE_TYPE, IMAGE)
             );
 
             String resultStatus = (String) result.get("result");
@@ -108,7 +110,7 @@ public class CloudinaryStorageServiceImpl implements StorageService {
             String publicId = extractFullPublicId(key);
 
             Map result = cloudinary.api().resource(publicId,
-                    ObjectUtils.asMap("resource_type", "image")
+                    ObjectUtils.asMap(RESOURCE_TYPE, IMAGE)
             );
 
             return result != null && result.containsKey("public_id");
@@ -125,7 +127,7 @@ public class CloudinaryStorageServiceImpl implements StorageService {
             String publicId = extractFullPublicId(key);
 
             Map result = cloudinary.api().resource(publicId,
-                    ObjectUtils.asMap("resource_type", "image")
+                    ObjectUtils.asMap(RESOURCE_TYPE, IMAGE)
             );
 
             long bytes = Long.parseLong(result.get("bytes").toString());
@@ -217,7 +219,7 @@ public class CloudinaryStorageServiceImpl implements StorageService {
      * Sanitiza el nombre del archivo
      */
     private String sanitizeFileName(String fileName) {
-        if (fileName == null) return "image";
+        if (fileName == null) return IMAGE;
 
         return fileName
                 .replaceAll("[^a-zA-Z0-9._-]", "_")
