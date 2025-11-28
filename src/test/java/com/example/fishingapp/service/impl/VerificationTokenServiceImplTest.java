@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestPropertySource(properties = {
         "verification.token.expiration=86400"
 })
-public class VerificationTokenServiceImplTest extends BaseIntegrationTest {
+class VerificationTokenServiceImplTest extends BaseIntegrationTest {
 
     @Autowired
     private VerificationTokenServiceImpl verificationTokenService;

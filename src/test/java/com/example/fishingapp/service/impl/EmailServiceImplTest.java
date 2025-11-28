@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
         "app.frontend.url=http://localhost:3000",
         "app.name=CharcaFishing"
 })
-public class EmailServiceImplTest {
+class EmailServiceImplTest {
 
     @Autowired
     private EmailServiceImpl emailService;
