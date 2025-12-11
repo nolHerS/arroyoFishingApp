@@ -4,7 +4,6 @@ import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 
-import java.util.ArrayList;
 import java.util.Collections;
 
 public class FishCaptureMapper {

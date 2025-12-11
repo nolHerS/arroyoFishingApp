@@ -12,4 +12,6 @@ public interface CaptureImageRepository extends JpaRepository<CaptureImage, Long
     List<CaptureImage> findByFishCaptureId(Long captureId);
 
     void deleteByFishCaptureId(Long captureId);
+
+    long countByFishCaptureId(Long fishCaptureId);
 }

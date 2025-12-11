@@ -28,6 +28,9 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
 
     private final Tika tika = new Tika();
 
+    // Límite de Cloudinary (10MB)
+    private static final long CLOUDINARY_MAX_SIZE = 10485760L; // 10MB en bytes
+
     @Value("${app.image.max-size}")
     private long maxFileSize;
 
@@ -132,12 +135,15 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
         try {
             log.debug("Creando thumbnail con formato: {}", outputFormat);
 
+            // Siempre usar JPEG para thumbnails (mejor compresión)
+            String format = "jpg";
+
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
             Thumbnails.of(originalImage)
                     .size(thumbnailWidth, thumbnailHeight)
-                    .outputFormat(outputFormat)
-                    .outputQuality(0.8) // 80% de calidad para thumbnails
+                    .outputFormat(format)
+                    .outputQuality(0.75) // 75% de calidad para thumbnails (reducido de 0.8)
                     .toOutputStream(outputStream);
 
             byte[] thumbnailBytes = outputStream.toByteArray();
@@ -155,31 +161,83 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
     @Override
     public ByteArrayInputStream optimizeImage(InputStream originalImage, String outputFormat, Integer maxWidth) {
         try {
-            log.debug("Optimizando imagen con formato: {} y ancho máximo: {}",
-                    outputFormat, maxWidth);
+            log.debug("Optimizando imagen con formato: {} y ancho máximo: {}", outputFormat, maxWidth);
+
+            // 🔥 FORZAR JPEG para mejor compresión (PNG no comprime bien)
+            String finalFormat = "jpg";
+            log.debug("Forzando formato JPEG para optimización");
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            float quality = 0.80f; // Comenzar con 80% de calidad
 
-            if (maxWidth != null && maxWidth > 0) {
-                // Redimensionar manteniendo el aspect ratio
-                Thumbnails.of(originalImage)
-                        .width(maxWidth)
-                        .outputFormat(outputFormat)
-                        .outputQuality(0.85) // 85% de calidad para imágenes optimizadas
-                        .toOutputStream(outputStream);
-            } else {
-                // Solo optimizar sin redimensionar
-                Thumbnails.of(originalImage)
-                        .scale(1.0)
-                        .outputFormat(outputFormat)
-                        .outputQuality(0.85)
-                        .toOutputStream(outputStream);
+            boolean success = false;
+            int attempts = 0;
+            int maxAttempts = 5;
+
+            while (!success && attempts < maxAttempts) {
+                outputStream.reset();
+                attempts++;
+
+                if (maxWidth != null && maxWidth > 0) {
+                    // Redimensionar manteniendo el aspect ratio
+                    Thumbnails.of(originalImage)
+                            .width(maxWidth)
+                            .outputFormat(finalFormat)
+                            .outputQuality(quality)
+                            .toOutputStream(outputStream);
+                } else {
+                    // Solo optimizar sin redimensionar
+                    Thumbnails.of(originalImage)
+                            .scale(1.0)
+                            .outputFormat(finalFormat)
+                            .outputQuality(quality)
+                            .toOutputStream(outputStream);
+                }
+
+                long outputSize = outputStream.size();
+                log.debug("Intento {}: {} bytes con calidad {}", attempts, outputSize, quality);
+
+                // Verificar si cumple con el límite de Cloudinary
+                if (outputSize <= CLOUDINARY_MAX_SIZE) {
+                    success = true;
+                    log.info("✅ Imagen optimizada correctamente - {} bytes (calidad: {})",
+                            outputSize, quality);
+                } else {
+                    // Reducir calidad para el siguiente intento
+                    quality -= 0.10f;
+
+                    if (quality < 0.50f) {
+                        // Si la calidad baja demasiado, reducir también el tamaño
+                        log.warn("⚠️ Calidad muy baja, reduciendo dimensiones");
+                        if (maxWidth != null && maxWidth > 800) {
+                            maxWidth = (int) (maxWidth * 0.8); // Reducir 20%
+                            quality = 0.75f; // Resetear calidad
+                        } else {
+                            throw new InvalidImageException(
+                                    String.format(
+                                            "No se pudo comprimir la imagen por debajo de 10MB después de %d intentos. " +
+                                                    "Por favor, usa una imagen más pequeña o con menos resolución.",
+                                            attempts
+                                    )
+                            );
+                        }
+                    }
+
+                    // Resetear el stream para el siguiente intento
+                    if (originalImage instanceof ByteArrayInputStream) {
+                        ((ByteArrayInputStream) originalImage).reset();
+                    }
+                }
             }
 
-            byte[] optimizedBytes = outputStream.toByteArray();
-            log.info("Imagen optimizada correctamente - {} bytes", optimizedBytes.length);
+            if (!success) {
+                throw new InvalidImageException(
+                        "No se pudo optimizar la imagen dentro del límite de 10MB. " +
+                                "Por favor, usa una imagen más pequeña."
+                );
+            }
 
-            return new ByteArrayInputStream(optimizedBytes);
+            return new ByteArrayInputStream(outputStream.toByteArray());
 
         } catch (IOException e) {
             log.error("Error al optimizar imagen", e);
@@ -189,13 +247,12 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
 
     @Override
     public String getOutputFormat(String mimeType) {
-        String format = switch (mimeType) {
-            case "image/png" -> "png";
-            case "image/webp" -> "webp";
-            default -> "jpg";
-        };
+        // 🔥 SIEMPRE usar JPEG para mejor compresión
+        // PNG y WebP no comprimen tan bien y pueden exceder 10MB
+        String format = "jpg";
 
-        log.debug("Formato de salida para {}: {}", mimeType, format);
+        log.debug("Formato de salida para {}: {} (forzado a JPEG para compatibilidad con Cloudinary)",
+                mimeType, format);
         return format;
     }
 

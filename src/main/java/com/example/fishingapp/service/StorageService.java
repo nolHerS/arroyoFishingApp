@@ -1,6 +1,6 @@
 package com.example.fishingapp.service;
 
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import com.example.fishingapp.dto.FileMetaData;
 
 import java.io.InputStream;
 
@@ -37,7 +37,7 @@ public interface StorageService {
      * @param key Ruta del archivo
      * @return Metadatos del archivo
      */
-    HeadObjectResponse getFileMetadata(String key);
+    FileMetaData getFileMetadata(String key);
 
     /**
      * Construye la clave (key) para almacenar un archivo en S3

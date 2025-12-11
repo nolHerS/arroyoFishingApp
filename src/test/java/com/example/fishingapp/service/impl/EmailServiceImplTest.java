@@ -1,6 +1,5 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
-import com.example.fishingapp.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
         "app.frontend.url=http://localhost:3000",
         "app.name=CharcaFishing"
 })
-public class EmailServiceImplTest {
+class EmailServiceImplTest {
 
     @Autowired
     private EmailServiceImpl emailService;

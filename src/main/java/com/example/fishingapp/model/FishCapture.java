@@ -43,7 +43,7 @@ public class FishCapture {
     private User user;
 
     // NUEVA RELACIÓN CON IMÁGENES
-    @OneToMany(mappedBy = "fishCapture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fishCapture")
     @Builder.Default
     private List<CaptureImage> images = new ArrayList<>();
 

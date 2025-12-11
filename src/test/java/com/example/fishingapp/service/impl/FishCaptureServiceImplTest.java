@@ -1,14 +1,14 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
 import com.example.fishingapp.dto.FishCaptureDto;
 import com.example.fishingapp.exception.ResourceNotFoundException;
+import com.example.fishingapp.exception.UnauthorizedException;
 import com.example.fishingapp.model.FishCapture;
 import com.example.fishingapp.model.User;
 import com.example.fishingapp.repository.FishCaptureRepository;
 import com.example.fishingapp.repository.UserRepository;
 import com.example.fishingapp.security.AuthUser;
-import com.example.fishingapp.service.impl.FishCaptureServiceImpl;
-import com.example.fishingapp.service.impl.UserServiceImpl;
+import com.example.fishingapp.service.CaptureImageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,10 +26,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FishCaptureServiceImplTest {
+class FishCaptureServiceImplTest{
 
     @Mock
     private FishCaptureRepository fishCaptureRepository;
+
+    @Mock
+    private CaptureImageService captureImageService;
 
     @Mock
     private UserRepository userRepository;
@@ -428,12 +431,17 @@ class FishCaptureServiceImplTest {
         // Mock: la captura existe
         when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
 
+        // Mock de captureImageService para que no haga nada
+        doNothing().when(captureImageService).deleteAllImagesByCaptureInternal(captureId);
+
         // Ejecutar método
         fishCaptureService.deleteFishCaptureDto(captureId, userId);
 
-        // Verificar que deleteById se llamó una vez con el id correcto
-        verify(fishCaptureRepository).deleteById(captureId);
+        // Verificar que delete se llamó con la entidad y se hizo flush
+        verify(fishCaptureRepository).delete(existingCapture);
+        verify(fishCaptureRepository).flush();
     }
+
 
     @Test
     void deleteFishCaptureDto_throwsException_whenRepositoryFails() {
@@ -454,9 +462,13 @@ class FishCaptureServiceImplTest {
         // Mock: la captura existe
         when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
 
-        // Mock del repositorio para lanzar excepción al eliminar
-        doThrow(new RuntimeException("Error al eliminar")).when(fishCaptureRepository).deleteById(captureId);
+        // Mock de captureImageService para que no haga nada
+        doNothing().when(captureImageService).deleteAllImagesByCaptureInternal(captureId);
 
+        // Mock del repositorio para lanzar excepción al eliminar
+        doThrow(new RuntimeException("Error al eliminar")).when(fishCaptureRepository).delete(existingCapture);
+
+        // Ejecutar método y comprobar excepción
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> fishCaptureService.deleteFishCaptureDto(captureId, userId)
@@ -464,6 +476,7 @@ class FishCaptureServiceImplTest {
 
         assertThat(exception.getMessage(), containsString("Error al eliminar"));
     }
+
 
     @Test
     void updateFishCaptureDto_throwsIllegalStateException_whenUserNotOwner() {
@@ -520,7 +533,7 @@ class FishCaptureServiceImplTest {
     }
 
     @Test
-    void deleteFishCaptureDto_throwsIllegalStateException_whenUserNotOwner() {
+    void deleteFishCaptureDto_throwsUnauthorizedException_whenUserNotOwner() {
         Long captureId = 1L;
         Long requestingUserId = 99L; // No es el dueño
         Long ownerUserId = 1L;
@@ -537,12 +550,18 @@ class FishCaptureServiceImplTest {
         // Mock: la captura existe pero pertenece a otro usuario
         when(fishCaptureRepository.findById(captureId)).thenReturn(Optional.of(existingCapture));
 
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
+        // Ejecutar método y comprobar que lanza UnauthorizedException
+        UnauthorizedException exception = assertThrows(
+                UnauthorizedException.class,
                 () -> fishCaptureService.deleteFishCaptureDto(captureId, requestingUserId)
         );
 
-        assertThat(exception.getMessage(), containsString("No tienes permiso"));
-        verify(fishCaptureRepository, never()).deleteById(any());
+        assertThat(exception.getMessage(), containsString("No tienes permisos"));
+
+        // Verificar que delete y flush nunca se llamaron
+        verify(fishCaptureRepository, never()).delete(any());
+        verify(fishCaptureRepository, never()).flush();
     }
+
+
 }

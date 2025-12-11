@@ -1,5 +1,6 @@
-package com.example.fishingapp.service;
+package com.example.fishingapp.service.impl;
 
+import com.example.fishingapp.config.BaseIntegrationTest;
 import com.example.fishingapp.dto.auth.AuthResponse;
 import com.example.fishingapp.dto.auth.LoginRequest;
 import com.example.fishingapp.dto.auth.RefreshTokenRequest;
@@ -8,14 +9,11 @@ import com.example.fishingapp.exception.EmailAlreadyExistsException;
 import com.example.fishingapp.exception.ResourceNotFoundException;
 import com.example.fishingapp.exception.UsernameAlreadyExistsException;
 import com.example.fishingapp.model.User;
-import com.example.fishingapp.repository.AuthUserRepository;
-import com.example.fishingapp.repository.RefreshTokenRepository;
-import com.example.fishingapp.repository.UserRepository;
+
 import com.example.fishingapp.security.AuthUser;
 import com.example.fishingapp.security.RefreshToken;
 import com.example.fishingapp.security.Role;
-import com.example.fishingapp.service.impl.AuthServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,29 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
         "jwt.expiration=3600000",
         "jwt.refresh-token.expiration=604800000"
 })
-class AuthServiceImplTest {
+class AuthServiceImplTest extends BaseIntegrationTest {
 
     @Autowired
     private AuthServiceImpl authService;
 
     @Autowired
-    private AuthUserRepository authUserRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @BeforeEach
-    void setUp() {
-        refreshTokenRepository.deleteAll();
-        authUserRepository.deleteAll();
-        userRepository.deleteAll();
-    }
 
     @Test
     void register_withValidData_createsUserAndReturnsAuthResponse() {

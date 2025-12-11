@@ -34,6 +34,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    public static final String USER_ID = "userId";
+    public static final String ROLE = "role";
     private final AuthUserRepository authUserRepository;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -81,8 +83,8 @@ public class AuthServiceImpl implements AuthService {
 
         // Generar tokens con claims personalizados
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("userId", savedUser.getId());
-        extraClaims.put("role", savedAuthUser.getRole().name());
+        extraClaims.put(USER_ID, savedUser.getId());
+        extraClaims.put(ROLE, savedAuthUser.getRole().name());
 
         String accessToken = jwtService.generateToken(extraClaims, savedAuthUser);
         String refreshToken = createRefreshToken(savedAuthUser);
@@ -111,8 +113,8 @@ public class AuthServiceImpl implements AuthService {
 
             // Generar tokens con claims personalizados
             Map<String, Object> extraClaims = new HashMap<>();
-            extraClaims.put("userId", authUser.getUser().getId());
-            extraClaims.put("role", authUser.getRole().name());
+            extraClaims.put(USER_ID, authUser.getUser().getId());
+            extraClaims.put(ROLE, authUser.getRole().name());
 
             String accessToken = jwtService.generateToken(extraClaims, authUser);
             String refreshToken = createRefreshToken(authUser);
@@ -149,8 +151,8 @@ public class AuthServiceImpl implements AuthService {
 
         // Generar nuevo access token con claims
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("userId", authUser.getUser().getId());
-        extraClaims.put("role", authUser.getRole().name());
+        extraClaims.put(USER_ID, authUser.getUser().getId());
+        extraClaims.put(ROLE, authUser.getRole().name());
 
         String newAccessToken = jwtService.generateToken(extraClaims, authUser);
 

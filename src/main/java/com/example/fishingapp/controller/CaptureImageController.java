@@ -66,11 +66,29 @@ public class CaptureImageController {
 
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        log.info("POST /api/captures/{}/images - Subiendo imagen por usuario {}",
-                captureId, authUser.getUsername());
+        log.info("╔══════════════════════════════════════════════════════════╗");
+        log.info("║  RECIBIDA PETICIÓN DE SUBIDA DE IMAGEN                  ║");
+        log.info("╚══════════════════════════════════════════════════════════╝");
+        log.info("Captura ID: {}", captureId);
+        log.info("Usuario: {} (ID: {})", authUser.getUsername(), authUser.getUser().getId());
+        log.info("Archivo recibido:");
+        log.info("  - Nombre: {}", file.getOriginalFilename());
+        log.info("  - Tamaño: {} bytes ({} MB)", file.getSize(), file.getSize() / 1024.0 / 1024.0);
+        log.info("  - Content Type: {}", file.getContentType());
+        log.info("  - isEmpty: {}", file.isEmpty());
 
         Long userId = authUser.getUser().getId();
+
+        log.info("🚀 Llamando al servicio de imágenes...");
         ImageResponseDto response = captureImageService.uploadImage(captureId, userId, file);
+
+        log.info("✅ Imagen subida exitosamente");
+        log.info("  - ID de imagen: {}", response.id());
+        log.info("  - URL: {}", response.originalUrl());
+        log.info("╔══════════════════════════════════════════════════════════╗");
+        log.info("║  ✅ PETICIÓN COMPLETADA CON ÉXITO                        ║");
+        log.info("╚══════════════════════════════════════════════════════════╝");
+
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

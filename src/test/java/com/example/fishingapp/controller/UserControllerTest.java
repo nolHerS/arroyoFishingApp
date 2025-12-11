@@ -2,6 +2,9 @@ package com.example.fishingapp.controller;
 
 import com.example.fishingapp.dto.UserDto;
 import com.example.fishingapp.model.User;
+import com.example.fishingapp.repository.AuthUserRepository;
+import com.example.fishingapp.repository.FishCaptureRepository;
+import com.example.fishingapp.repository.RefreshTokenRepository;
 import com.example.fishingapp.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +34,22 @@ class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private FishCaptureRepository fishCaptureRepository;
+
+    @Autowired
+    private AuthUserRepository authUserRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
     private User testUser;
 
    @BeforeEach
     void setUp() {
+        fishCaptureRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
+        authUserRepository.deleteAll();
         userRepository.deleteAll();
 
         testUser = userRepository.save(User.builder()
