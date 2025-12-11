@@ -23,7 +23,7 @@ public class CorsConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",
                 "http://localhost:3000",
-                "https://arroyo-fishing-frontend-mwgaqdlku-nolherss-projects.vercel.app"
+                "https://arroyo-fishing-frontend-1j5zi5fvk-nolherss-projects.vercel.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","Accept","X-Requested-With"));
